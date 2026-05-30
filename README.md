@@ -12,6 +12,8 @@ preview, all on a **Sinequa** backend via
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
 [![Sinequa](https://img.shields.io/badge/@sinequa/atomic-1.1-2D6CDF)](https://sinequa.github.io/sba-mint/atomic/)
 
+📖 **[Read the interactive tutorial →](https://hebus.github.io/sinequa-react-tanstack-start-starter/)**
+
 </div>
 
 ---
@@ -98,7 +100,7 @@ src/
 
 - **[`PROMPT.md`](./PROMPT.md)** — reproducible A→Z guide (scaffolding + auth + screens).
 - **[`PROMPT-COMPLET.md`](./PROMPT-COMPLET.md)** — extended version (advanced search, highlighting, expiration).
-- **[`tutorial/index.html`](./tutorial/index.html)** — interactive tutorial (table of contents, search, copy-to-clipboard, theme).
+- **[Interactive tutorial (GitHub Pages)](https://hebus.github.io/sinequa-react-tanstack-start-starter/)** — live, with table of contents, search, copy-to-clipboard and theme. Source: [`tutorial/`](./tutorial/).
 - **[`tutorial/aller-plus-loin/`](./tutorial/aller-plus-loin/)** — advanced topics:
   preview highlighting · facets/aggregations · token expiration · deployment.
 
