@@ -1,0 +1,2658 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutoriel — App Sinequa avec TanStack Start</title>
+<script>(function(){try{var t=localStorage.getItem('tuto-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+<style>
+:root{
+  --bg:#0b1020;--panel:#121a2e;--panel-2:#0e1626;--border:#26324a;--text:#e6ebf5;
+  --muted:#94a3b8;--accent:#6366f1;--accent-2:#818cf8;--code-bg:#0d1117;
+}
+:root[data-theme='light']{
+  --bg:#f6f7fb;--panel:#ffffff;--panel-2:#f1f3f9;--border:#e2e8f0;--text:#0f172a;
+  --muted:#64748b;--accent:#4f46e5;--accent-2:#4338ca;--code-bg:#0d1117;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+a{color:var(--accent-2)}
+/* Sidebar */
+.sidebar{width:300px;flex:0 0 300px;background:var(--panel-2);border-right:1px solid var(--border);height:100vh;position:sticky;top:0;overflow-y:auto;overflow-x:hidden;padding:18px 14px}
+/* Subtle, theme-integrated scrollbars */
+.sidebar,.main,pre{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.sidebar::-webkit-scrollbar,.main::-webkit-scrollbar{width:10px;height:10px}
+.sidebar::-webkit-scrollbar-thumb,.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
+.sidebar::-webkit-scrollbar-thumb:hover,.main::-webkit-scrollbar-thumb:hover{background:var(--muted);background-clip:padding-box;border:3px solid transparent}
+.sidebar::-webkit-scrollbar-track,.main::-webkit-scrollbar-track{background:transparent}
+pre::-webkit-scrollbar{height:10px;width:10px}
+pre::-webkit-scrollbar-thumb{background:#30363d;border-radius:999px;border:3px solid transparent;background-clip:padding-box}
+pre::-webkit-scrollbar-thumb:hover{background:#444c56;background-clip:padding-box}
+pre::-webkit-scrollbar-track{background:transparent}
+.brand{font-weight:700;font-size:1.05rem;padding:6px 10px 14px;display:flex;align-items:center;gap:8px}
+.nav-back{display:block;text-decoration:none;color:var(--muted);font-size:.82rem;padding:6px 10px;margin-bottom:8px;border:1px solid var(--border);border-radius:8px}
+.nav-back:hover{color:var(--text);border-color:var(--accent)}
+/* Search box */
+.nav-search-wrap{position:relative;margin:0 6px 12px}
+.nav-search{width:100%;padding:8px 30px 8px 32px;background:var(--panel);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:.85rem}
+.nav-search:focus{outline:none;border-color:var(--accent)}
+.nav-search-wrap::before{content:'🔎';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.8rem;opacity:.7;pointer-events:none}
+.nav-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:2px 6px;display:none}
+.nav-search-wrap.has-value .nav-clear{display:block}
+.nav-empty{display:none;color:var(--muted);font-size:.82rem;padding:8px 12px}
+.nav.searching .nav-empty.show{display:block}
+.nav.searching .nav-subs{display:block}
+mark{background:color-mix(in srgb,var(--accent) 40%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.nav-group{margin-bottom:4px}
+.nav-chapter{display:block;text-decoration:none;color:var(--text);padding:8px 10px;border-radius:8px;font-weight:600;font-size:.9rem}
+.nav-chapter:hover{background:var(--panel)}
+.nav-chapter.active{background:var(--accent);color:#fff}
+.nav-subs{margin:2px 0 6px 8px;border-left:1px solid var(--border);padding-left:6px;display:none}
+.nav-group.active .nav-subs{display:block}
+.nav-sub{display:block;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:6px;font-size:.82rem}
+.nav-sub:hover{color:var(--text);background:var(--panel)}
+.nav-sub.current{color:var(--accent-2);font-weight:600}
+/* Main */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow:auto}
+.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 28px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--border)}
+.topbar .menu{display:none}
+.iconbtn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.9rem;text-decoration:none;display:inline-block}
+.iconbtn:hover{border-color:var(--accent)}
+.content{padding:24px 36px 64px;max-width:920px;width:100%;margin:0 auto}
+.chapter{display:none;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* Home / table of contents */
+.home-hero{padding:8px 0 6px}
+.home-hero .badge{display:inline-block;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent-2);border:1px solid var(--accent);border-radius:999px;padding:3px 12px;font-size:.74rem;font-weight:600}
+.home-hero h1{border:none;margin:.4em 0 .2em;font-size:2rem}
+.home-sub{color:var(--muted);font-size:1rem;max-width:680px}
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:24px}
+.toc-card{display:flex;gap:14px;align-items:flex-start;text-decoration:none;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;transition:border-color .15s,transform .15s,box-shadow .15s}
+.toc-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.toc-num{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent);color:#fff;font-weight:700}
+.toc-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.toc-title{font-weight:600;font-size:.98rem}
+.toc-blurb{color:var(--muted);font-size:.83rem;line-height:1.45}
+.nav-home{margin-bottom:8px}
+h1,h2,h3{line-height:1.25;scroll-margin-top:70px}
+h1{font-size:1.7rem;margin:.2em 0 .6em;border-bottom:1px solid var(--border);padding-bottom:.3em}
+h2{font-size:1.3rem;margin:1.6em 0 .5em}
+h3{font-size:1.08rem;margin:1.3em 0 .4em}
+p,li{line-height:1.65}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;background:color-mix(in srgb,var(--accent) 16%,transparent);padding:.1em .35em;border-radius:5px}
+pre{position:relative;background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:16px 16px;overflow:auto}
+pre code{background:none;padding:0;font-size:.84rem;color:#e6edf3}
+.copy-btn{position:absolute;top:8px;right:8px;background:#1f2937;color:#e5e7eb;border:1px solid #374151;border-radius:7px;padding:4px 10px;font-size:.74rem;cursor:pointer;opacity:.55;transition:opacity .15s}
+pre:hover .copy-btn,.copy-btn:focus-visible{opacity:1}
+.copy-btn:hover{background:#374151}
+blockquote{margin:1em 0;padding:12px 16px;border-left:4px solid var(--accent);background:var(--panel);border-radius:0 10px 10px 0;color:var(--text)}
+blockquote p{margin:.3em 0}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:.9rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left}
+th{background:var(--panel)}
+tr:nth-child(even) td{background:color-mix(in srgb,var(--panel) 50%,transparent)}
+hr{border:none;border-top:1px solid var(--border);margin:2em 0}
+.pager{display:flex;justify-content:space-between;gap:12px;margin-top:40px;border-top:1px solid var(--border);padding-top:20px}
+.pager button{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 16px;cursor:pointer;font-size:.9rem;max-width:48%;text-align:left}
+.pager button:hover:not(:disabled){border-color:var(--accent)}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.pager .lbl{display:block;font-size:.72rem;color:var(--muted)}
+.pager .ttl{display:block;font-weight:600}
+.pager .next{text-align:right}
+@media (max-width:860px){
+  .sidebar{position:fixed;left:0;top:0;z-index:20;transform:translateX(-100%);transition:transform .25s}
+  body.nav-open .sidebar{transform:translateX(0)}
+  .topbar .menu{display:inline-block}
+}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand"><span class="dot"></span> Tutoriel Sinequa</div>
+  
+  <div class="nav-search-wrap">
+    <input id="navSearch" class="nav-search" type="search" placeholder="Rechercher…" aria-label="Rechercher" autocomplete="off">
+    <button id="navClear" class="nav-clear" type="button" aria-label="Effacer">×</button>
+  </div>
+  <nav class="nav"><a class="nav-chapter nav-home" data-chapter="-1" href="#home">🏠 Accueil</a><div class="nav-group"><a class="nav-chapter" data-chapter="0" href="#c0-1-introduction-amp-architecture">1. Introduction &amp; architecture</a><div class="nav-subs"><a class="nav-sub" data-chapter="0" href="#c0-ce-que-vous-allez-apprendre">Ce que vous allez apprendre</a><a class="nav-sub" data-chapter="0" href="#c0-les-deux-decisions-d-39-architecture-fondamentales">Les deux décisions d&#39;architecture fondamentales</a><a class="nav-sub" data-chapter="0" href="#c0-prerequis">Prérequis</a><a class="nav-sub" data-chapter="0" href="#c0-le-resultat-final-arborescence">Le résultat final (arborescence)</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="1" href="#c1-2-mise-en-place-du-projet-scaffolding">2. Mise en place du projet (scaffolding)</a><div class="nav-subs"><a class="nav-sub" data-chapter="1" href="#c1-2-1-package-json">2.1 package.json</a><a class="nav-sub" data-chapter="1" href="#c1-2-2-vite-config-ts-tanstack-start-https-proxy">2.2 vite.config.ts — TanStack Start + HTTPS + proxy</a><a class="nav-sub" data-chapter="1" href="#c1-2-3-tsconfig-json">2.3 tsconfig.json</a><a class="nav-sub" data-chapter="1" href="#c1-2-4-gitignore">2.4 .gitignore</a><a class="nav-sub" data-chapter="1" href="#c1-2-5-env-configuration-sinequa">2.5 .env — configuration Sinequa</a><a class="nav-sub" data-chapter="1" href="#c1-2-6-src-router-tsx">2.6 src/router.tsx</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="2" href="#c2-3-l-39-api-d-39-authentification-sinequa-atomic">3. L&#39;API d&#39;authentification @sinequa/atomic</a><div class="nav-subs"><a class="nav-sub" data-chapter="2" href="#c2-3-1-les-fonctions-cles">3.1 Les fonctions clés</a><a class="nav-sub" data-chapter="2" href="#c2-3-2-le-cycle-d-39-authentification">3.2 Le cycle d&#39;authentification</a><a class="nav-sub" data-chapter="2" href="#c2-3-3-le-flux-que-nous-allons-implementer">3.3 Le flux que nous allons implémenter</a><a class="nav-sub" data-chapter="2" href="#c2-3-4-pieges-importants">3.4 Pièges importants</a><a class="nav-sub" data-chapter="2" href="#c2-3-5-comment-inspecter-la-librairie">3.5 Comment inspecter la librairie</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="3" href="#c3-4-le-contexte-d-39-authentification-client-only">4. Le contexte d&#39;authentification (client-only)</a><div class="nav-subs"><a class="nav-sub" data-chapter="3" href="#c3-4-1-src-auth-auth-context-tsx">4.1 src/auth/auth-context.tsx</a><a class="nav-sub" data-chapter="3" href="#c3-4-2-decryptage">4.2 Décryptage</a><a class="nav-sub" data-chapter="3" href="#c3-4-3-pieges">4.3 Pièges</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="4" href="#c4-5-l-39-ecran-de-connexion-3-methodes">5. L&#39;écran de connexion (3 méthodes)</a><div class="nav-subs"><a class="nav-sub" data-chapter="4" href="#c4-5-1-src-routes-login-tsx">5.1 src/routes/login.tsx</a><a class="nav-sub" data-chapter="4" href="#c4-5-2-decryptage">5.2 Décryptage</a><a class="nav-sub" data-chapter="4" href="#c4-5-3-pieges">5.3 Pièges</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="5" href="#c5-6-sso-oauth-via-keycloak-le-chapitre-des-pieges">6. SSO OAuth via Keycloak (le chapitre des pièges)</a><div class="nav-subs"><a class="nav-sub" data-chapter="5" href="#c5-6-1-comment-l-39-app-decouvre-le-sso">6.1 Comment l&#39;app découvre le SSO</a><a class="nav-sub" data-chapter="5" href="#c5-6-2-le-piege-du-redirect-uri-pourquoi-identity-dev-et-le-port-4200">6.2 Le piège du redirect_uri — pourquoi identity-dev et le port 4200</a><a class="nav-sub" data-chapter="5" href="#c5-6-3-forcer-le-provider-rappel">6.3 Forcer le provider (rappel)</a><a class="nav-sub" data-chapter="5" href="#c5-6-4-le-retour-de-redirection">6.4 Le retour de redirection</a><a class="nav-sub" data-chapter="5" href="#c5-6-5-tester-le-flux-sans-mot-de-passe-au-niveau-http">6.5 Tester le flux sans mot de passe (au niveau HTTP)</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="6" href="#c6-7-routes-protegees-document-racine-amp-profil">7. Routes protégées, document racine &amp; profil</a><div class="nav-subs"><a class="nav-sub" data-chapter="6" href="#c6-7-1-src-routes-root-tsx-document-html-providers">7.1 src/routes/__root.tsx — document HTML + providers</a><a class="nav-sub" data-chapter="6" href="#c6-7-2-la-structure-des-routes">7.2 La structure des routes</a><a class="nav-sub" data-chapter="6" href="#c6-7-3-src-routes-protected-tsx-la-garde-unique">7.3 src/routes/_protected.tsx — la garde unique</a><a class="nav-sub" data-chapter="6" href="#c6-7-4-accueil-src-routes-protected-index-tsx">7.4 Accueil — src/routes/_protected/index.tsx</a><a class="nav-sub" data-chapter="6" href="#c6-7-5-profil-src-routes-protected-profile-tsx">7.5 Profil — src/routes/_protected/profile.tsx</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="7" href="#c7-8-recherche-amp-pagination">8. Recherche &amp; pagination</a><div class="nav-subs"><a class="nav-sub" data-chapter="7" href="#c7-8-1-trouver-le-nom-de-la-query-fetchapp">8.1 Trouver le nom de la query : fetchApp()</a><a class="nav-sub" data-chapter="7" href="#c7-8-2-lancer-une-recherche-fetchquery">8.2 Lancer une recherche : fetchQuery()</a><a class="nav-sub" data-chapter="7" href="#c7-8-3-src-routes-protected-search-tsx-recherche-pagination">8.3 src/routes/_protected/search.tsx (recherche + pagination)</a><a class="nav-sub" data-chapter="7" href="#c7-8-4-decryptage-de-la-pagination">8.4 Décryptage de la pagination</a><a class="nav-sub" data-chapter="7" href="#c7-8-5-affichage-des-resultats">8.5 Affichage des résultats</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="8" href="#c8-9-preview-d-39-un-document-sheet-iframe-metadonnees">9. Preview d&#39;un document (sheet + iframe + métadonnées)</a><div class="nav-subs"><a class="nav-sub" data-chapter="8" href="#c8-9-1-l-39-api-fetchpreview">9.1 L&#39;API : fetchPreview()</a><a class="nav-sub" data-chapter="8" href="#c8-9-2-le-composant-sheet-src-components-sheet-tsx">9.2 Le composant Sheet — src/components/sheet.tsx</a><a class="nav-sub" data-chapter="8" href="#c8-9-3-metadonnees-iframe-dans-search-tsx">9.3 Métadonnées + iframe (dans search.tsx)</a><a class="nav-sub" data-chapter="8" href="#c8-9-4-animer-un-lt-details-gt-natif-collapse-expand-fluide">9.4 Animer un &lt;details&gt; natif (collapse ⇄ expand fluide)</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="9" href="#c9-10-theme-clair-sombre">10. Thème clair / sombre</a><div class="nav-subs"><a class="nav-sub" data-chapter="9" href="#c9-10-1-palette-par-variables-css">10.1 Palette par variables CSS</a><a class="nav-sub" data-chapter="9" href="#c9-10-2-src-theme-theme-context-tsx">10.2 src/theme/theme-context.tsx</a><a class="nav-sub" data-chapter="9" href="#c9-10-3-le-script-anti-flash-rappel-root-tsx">10.3 Le script anti-flash (rappel __root.tsx)</a><a class="nav-sub" data-chapter="9" href="#c9-10-4-pieges-hydratation-ssr-client">10.4 Pièges : hydratation SSR/client</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="10" href="#c10-11-recapitulatif-verifications-amp-annexe-css">11. Récapitulatif, vérifications &amp; annexe CSS</a><div class="nav-subs"><a class="nav-sub" data-chapter="10" href="#c10-11-1-commandes">11.1 Commandes</a><a class="nav-sub" data-chapter="10" href="#c10-11-2-strategie-de-verification">11.2 Stratégie de vérification</a><a class="nav-sub" data-chapter="10" href="#c10-11-3-les-pieges-en-une-page">11.3 Les pièges, en une page</a><a class="nav-sub" data-chapter="10" href="#c10-11-4-pour-aller-plus-loin">11.4 Pour aller plus loin</a><a class="nav-sub" data-chapter="10" href="#c10-11-5-annexe-src-styles-css-complet">11.5 Annexe — src/styles.css complet</a></div></div><div class="nav-empty">Aucun résultat.</div></nav>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <button class="iconbtn menu" id="menuBtn">☰ Sommaire</button>
+    <div style="flex:1"></div>
+    <button class="iconbtn" id="themeBtn">☀️ Clair</button>
+  </div>
+  <div class="content">
+    <section class="chapter home" id="home" data-index="-1"><div class="home-hero"><span class="badge">Tutoriel</span><h1>Construire une application Sinequa avec TanStack Start</h1><p class="home-sub">De la création du projet à l'authentification multi-méthode, aux routes protégées, à la recherche paginée, à la preview de documents et au thème clair/sombre. Choisissez un chapitre pour commencer.</p></div><div class="toc-grid"><a class="toc-card" href="#c0-1-introduction-amp-architecture"><span class="toc-num">1</span><span class="toc-body"><span class="toc-title">Introduction &amp; architecture</span><span class="toc-blurb">Ce tutoriel montre, de A à Z, comment construire une application React / TanStack Start
+qui s&#39;authentifie sur un backend Sinequa via la librairie…</span></span></a><a class="toc-card" href="#c1-2-mise-en-place-du-projet-scaffolding"><span class="toc-num">2</span><span class="toc-body"><span class="toc-title">Mise en place du projet (scaffolding)</span><span class="toc-blurb">On crée un projet TanStack Start minimal, puis on y ajoute @sinequa/atomic, le proxy
+vers Sinequa et le HTTPS de développement.</span></span></a><a class="toc-card" href="#c2-3-l-39-api-d-39-authentification-sinequa-atomic"><span class="toc-num">3</span><span class="toc-body"><span class="toc-title">L&#39;API d&#39;authentification @sinequa/atomic</span><span class="toc-blurb">Avant d&#39;écrire du code, comprenons les fonctions exposées par la librairie et le cycle
+d&#39;authentification. Tout est importé depuis…</span></span></a><a class="toc-card" href="#c3-4-le-contexte-d-39-authentification-client-only"><span class="toc-num">4</span><span class="toc-body"><span class="toc-title">Le contexte d&#39;authentification (client-only)</span><span class="toc-blurb">C&#39;est le cœur de l&#39;intégration. Un AuthProvider React qui :</span></span></a><a class="toc-card" href="#c4-5-l-39-ecran-de-connexion-3-methodes"><span class="toc-num">5</span><span class="toc-body"><span class="toc-title">L&#39;écran de connexion (3 méthodes)</span><span class="toc-blurb">L&#39;écran /login propose trois onglets : Login/mot de passe, Bearer token, SSO.
+Il consomme le useAuth() du chapitre précédent.</span></span></a><a class="toc-card" href="#c5-6-sso-oauth-via-keycloak-le-chapitre-des-pieges"><span class="toc-num">6</span><span class="toc-body"><span class="toc-title">SSO OAuth via Keycloak (le chapitre des pièges)</span><span class="toc-blurb">C&#39;est ici que se concentrent les difficultés réelles. Le SSO de l&#39;application mint_rnd
+passe par un Keycloak (OIDC + PKCE). Comprendre le…</span></span></a><a class="toc-card" href="#c6-7-routes-protegees-document-racine-amp-profil"><span class="toc-num">7</span><span class="toc-body"><span class="toc-title">Routes protégées, document racine &amp; profil</span><span class="toc-blurb">On monte les providers dans le document racine, puis on protège un groupe de routes avec
+un seul garde via un layout pathless TanStack Router.</span></span></a><a class="toc-card" href="#c7-8-recherche-amp-pagination"><span class="toc-num">8</span><span class="toc-body"><span class="toc-title">Recherche &amp; pagination</span><span class="toc-blurb">La page /search découvre le nom du web service de query via fetchApp(), lance la
+recherche avec fetchQuery(), affiche les résultats et les pagine.</span></span></a><a class="toc-card" href="#c8-9-preview-d-39-un-document-sheet-iframe-metadonnees"><span class="toc-num">9</span><span class="toc-body"><span class="toc-title">Preview d&#39;un document (sheet + iframe + métadonnées)</span><span class="toc-blurb">Au clic sur un résultat, on ouvre un panneau latéral (« sheet ») qui glisse de droite à
+gauche, affiche les métadonnées du document puis sa preview…</span></span></a><a class="toc-card" href="#c9-10-theme-clair-sombre"><span class="toc-num">10</span><span class="toc-body"><span class="toc-title">Thème clair / sombre</span><span class="toc-blurb">Le thème est piloté par des variables CSS sur &lt;html data-theme&gt;, avec persistance
+localStorage, un toggle et un script anti-flash.</span></span></a><a class="toc-card" href="#c10-11-recapitulatif-verifications-amp-annexe-css"><span class="toc-num">11</span><span class="toc-body"><span class="toc-title">Récapitulatif, vérifications &amp; annexe CSS</span><span class="toc-blurb">Exemple — vérifier le proxy vers Sinequa :</span></span></a></div></section>
+<section class="chapter" id="chapter-0" data-index="0"><h1 id="c0-1-introduction-amp-architecture">1. Introduction &amp; architecture</h1>
+<p>Ce tutoriel montre, de A à Z, comment construire une application <strong>React / TanStack Start</strong>
+qui s&#39;authentifie sur un backend <strong>Sinequa</strong> via la librairie <code>@sinequa/atomic</code>, puis :</p>
+<ul>
+<li>propose <strong>trois méthodes d&#39;authentification</strong> (login/mot de passe, Bearer token, SSO OAuth/SAML) ;</li>
+<li>affiche un écran confirmant l&#39;authentification ;</li>
+<li>expose des <strong>routes protégées</strong> (profil utilisateur, recherche) ;</li>
+<li>branche une <strong>recherche</strong> Sinequa avec <strong>pagination</strong> ;</li>
+<li>ouvre la <strong>preview</strong> d&#39;un document dans un panneau latéral, avec ses <strong>métadonnées</strong> ;</li>
+<li>gère un <strong>thème clair/sombre</strong> persistant.</li>
+</ul>
+<h2 id="c0-ce-que-vous-allez-apprendre">Ce que vous allez apprendre</h2>
+<ul>
+<li>Intégrer <code>@sinequa/atomic</code> (config globale, cycle d&#39;authentification, requêtes, preview).</li>
+<li>Faire cohabiter le <strong>SSR de TanStack Start</strong> avec une authentification <strong>100 % navigateur</strong>.</li>
+<li>Mettre en place un <strong>proxy de développement</strong> vers un serveur Sinequa, en <strong>HTTPS</strong>.</li>
+<li>Structurer des routes protégées avec un <strong>layout de garde unique</strong>.</li>
+<li>Éviter les pièges réels rencontrés (versions, provider OAuth, redirect_uri, hydratation…).</li>
+</ul>
+<h2 id="c0-les-deux-decisions-d-39-architecture-fondamentales">Les deux décisions d&#39;architecture fondamentales</h2>
+<p>Deux choix structurent toute l&#39;application. Les comprendre dès maintenant évite beaucoup de confusion.</p>
+<h3 id="c0-1-l-39-authentification-sinequa-est-100-navigateur">1. L&#39;authentification Sinequa est 100 % navigateur</h3>
+<p><code>@sinequa/atomic</code> s&#39;appuie sur le <code>sessionStorage</code>, des <strong>événements DOM</strong> (<code>&#39;authenticated&#39;</code>)
+et des <strong>redirections</strong> (OAuth/SAML). Or TanStack Start fait du <strong>rendu côté serveur (SSR)</strong>.</p>
+<blockquote>
+<p>💡 <strong>Règle d&#39;or</strong> : toute la logique d&#39;authentification s&#39;exécute <strong>uniquement côté client</strong>
+— dans des <code>useEffect</code> ou des gestionnaires d&#39;événements, <strong>jamais</strong> pendant le rendu serveur.
+Pendant le SSR, <code>window</code>, <code>sessionStorage</code> et les événements DOM n&#39;existent pas.</p>
+</blockquote>
+<h3 id="c0-2-on-passe-par-un-proxy-vite-en-https-port-4200">2. On passe par un proxy Vite (en HTTPS, port 4200)</h3>
+<p>Les helpers de la librairie construisent leurs URLs ainsi : <code>url = ${backendUrl}/${endpoint}</code>.
+En laissant <code>backendUrl</code> se remplir automatiquement avec <code>window.location.origin</code>
+(<code>https://localhost:4200</code>), <strong>tous les appels partent en same-origin</strong> vers <code>/api/...</code>, et le
+<strong>proxy Vite</strong> les relaie vers le serveur Sinequa. Les cookies de session et le CSRF
+fonctionnent donc naturellement.</p>
+<blockquote>
+<p>⚠️ Le HTTPS et le port <strong>4200</strong> ne sont pas arbitraires : le provider OAuth de
+développement (<code>identity-dev</code>) est enregistré côté serveur avec un <code>redirect_uri</code> qui
+pointe vers <code>https://localhost:4200/auth/redirect</code>. C&#39;est détaillé au chapitre <strong>SSO</strong>.</p>
+</blockquote>
+<h2 id="c0-prerequis">Prérequis</h2>
+<ul>
+<li><strong>Node.js ≥ 20</strong> (testé avec Node 24, npm 11).</li>
+<li>Un accès npm au package <code>@sinequa/atomic</code> (package propriétaire Sinequa).</li>
+<li>Un backend Sinequa accessible (ce tutoriel cible la démo <code>https://su-sba.demo.sinequa.com</code>).</li>
+</ul>
+<h2 id="c0-le-resultat-final-arborescence">Le résultat final (arborescence)</h2>
+<pre><code>demo-login/
+├─ vite.config.ts            # plugin TanStack Start + HTTPS + proxy Sinequa
+├─ tsconfig.json
+├─ .env                      # nom d&#39;app + provider OAuth
+├─ src/
+│  ├─ router.tsx
+│  ├─ styles.css
+│  ├─ auth/
+│  │  └─ auth-context.tsx    # cœur : bootstrap + état d&#39;auth
+│  ├─ theme/
+│  │  └─ theme-context.tsx   # thème clair/sombre
+│  ├─ components/
+│  │  └─ sheet.tsx           # panneau latéral (preview)
+│  └─ routes/
+│     ├─ __root.tsx          # document HTML + providers (public)
+│     ├─ login.tsx           # /login (public)
+│     ├─ _protected.tsx      # layout pathless : garde + nav
+│     └─ _protected/
+│        ├─ index.tsx        # /         accueil
+│        ├─ profile.tsx      # /profile  infos du principal
+│        └─ search.tsx       # /search   recherche + preview + pagination
+</code></pre>
+<p>Passons à la mise en place du projet.</p>
+</section>
+<section class="chapter" id="chapter-1" data-index="1"><h1 id="c1-2-mise-en-place-du-projet-scaffolding">2. Mise en place du projet (scaffolding)</h1>
+<p>On crée un projet <strong>TanStack Start</strong> minimal, puis on y ajoute <code>@sinequa/atomic</code>, le proxy
+vers Sinequa et le HTTPS de développement.</p>
+<h2 id="c1-2-1-package-json">2.1 <code>package.json</code></h2>
+<blockquote>
+<p>⚠️ <strong>Piège de versions (vécu).</strong> <code>@tanstack/react-start</code> exige <code>vite &gt;= 7</code>, et
+<code>@vitejs/plugin-react@6</code> exige <code>vite ^8</code>. Un <code>vite@^6</code> provoque un échec <code>ERESOLVE</code> à
+l&#39;installation. La combinaison qui fonctionne : <strong>vite 8 + @vitejs/plugin-react 6</strong>.</p>
+</blockquote>
+<pre><code class="language-json">{
+  &quot;name&quot;: &quot;demo-login&quot;,
+  &quot;private&quot;: true,
+  &quot;type&quot;: &quot;module&quot;,
+  &quot;scripts&quot;: {
+    &quot;dev&quot;: &quot;vite dev&quot;,
+    &quot;build&quot;: &quot;vite build&quot;,
+    &quot;start&quot;: &quot;node .output/server/index.mjs&quot;,
+    &quot;typecheck&quot;: &quot;tsc --noEmit&quot;
+  },
+  &quot;dependencies&quot;: {
+    &quot;@sinequa/atomic&quot;: &quot;^1.1.0&quot;,
+    &quot;@tanstack/react-router&quot;: &quot;^1.170.0&quot;,
+    &quot;@tanstack/react-start&quot;: &quot;^1.168.0&quot;,
+    &quot;react&quot;: &quot;^19.0.0&quot;,
+    &quot;react-dom&quot;: &quot;^19.0.0&quot;
+  },
+  &quot;devDependencies&quot;: {
+    &quot;@types/node&quot;: &quot;^22.10.0&quot;,
+    &quot;@types/react&quot;: &quot;^19.0.0&quot;,
+    &quot;@types/react-dom&quot;: &quot;^19.0.0&quot;,
+    &quot;@vitejs/plugin-basic-ssl&quot;: &quot;^2.3.0&quot;,
+    &quot;@vitejs/plugin-react&quot;: &quot;^6.0.0&quot;,
+    &quot;typescript&quot;: &quot;^5.7.0&quot;,
+    &quot;vite&quot;: &quot;^8.0.0&quot;
+  }
+}
+</code></pre>
+<p><code>@vitejs/plugin-basic-ssl</code> sert au HTTPS de dev (voir §2.2). Installez :</p>
+<pre><code class="language-bash">npm install
+</code></pre>
+<h2 id="c1-2-2-vite-config-ts-tanstack-start-https-proxy">2.2 <code>vite.config.ts</code> — TanStack Start + HTTPS + proxy</h2>
+<pre><code class="language-ts">import { defineConfig } from &#39;vite&#39;
+import { tanstackStart } from &#39;@tanstack/react-start/plugin/vite&#39;
+import viteReact from &#39;@vitejs/plugin-react&#39;
+import basicSsl from &#39;@vitejs/plugin-basic-ssl&#39;
+
+const API_URL = &#39;https://su-sba.demo.sinequa.com&#39;
+
+const sinequaProxyTarget = { target: API_URL, secure: true, changeOrigin: true }
+
+// HTTPS + port 4200 sont obligatoires pour le SSO : le provider &quot;identity-dev&quot; a un
+// redirect_uri = https://localhost:4200/auth/redirect (voir le chapitre SSO).
+export default defineConfig({
+  server: {
+    port: 4200,
+    host: true,
+    proxy: {
+      &#39;/api&#39;: sinequaProxyTarget,
+      &#39;/xdownload&#39;: sinequaProxyTarget,
+      &#39;/endpoints&#39;: { ...sinequaProxyTarget, secure: false, ws: true },
+      &#39;/r&#39;: sinequaProxyTarget,
+      &#39;/rest&#39;: sinequaProxyTarget,
+      &#39;/auth/redirect&#39;: { ...sinequaProxyTarget, secure: false },
+      &#39;/saml/redirect&#39;: sinequaProxyTarget,
+    },
+  },
+  plugins: [basicSsl(), tanstackStart(), viteReact()],
+})
+</code></pre>
+<p>Points clés :</p>
+<ul>
+<li><strong><code>basicSsl()</code></strong> génère un certificat auto-signé → le serveur tourne en <code>https://</code>. Le
+navigateur affichera <strong>un avertissement à accepter une fois</strong>.</li>
+<li>Le proxy couvre tous les préfixes Sinequa utiles. <code>&#39;/auth/redirect&#39;</code> est en <code>secure:false</code>
+(et relaie le <strong>retour OAuth</strong>) ; <code>&#39;/endpoints&#39;</code> active le <code>ws</code> (websockets).</li>
+<li><strong>Port 4200</strong> : imposé par le <code>redirect_uri</code> du provider de dev (chapitre SSO).</li>
+</ul>
+<h2 id="c1-2-3-tsconfig-json">2.3 <code>tsconfig.json</code></h2>
+<pre><code class="language-json">{
+  &quot;compilerOptions&quot;: {
+    &quot;jsx&quot;: &quot;react-jsx&quot;,
+    &quot;moduleResolution&quot;: &quot;Bundler&quot;,
+    &quot;module&quot;: &quot;ESNext&quot;,
+    &quot;target&quot;: &quot;ES2022&quot;,
+    &quot;lib&quot;: [&quot;DOM&quot;, &quot;DOM.Iterable&quot;, &quot;ES2022&quot;],
+    &quot;types&quot;: [&quot;vite/client&quot;, &quot;node&quot;],
+    &quot;skipLibCheck&quot;: true,
+    &quot;strict&quot;: true,
+    &quot;noEmit&quot;: true,
+    &quot;verbatimModuleSyntax&quot;: true
+  },
+  &quot;include&quot;: [&quot;src&quot;, &quot;vite.config.ts&quot;]
+}
+</code></pre>
+<blockquote>
+<p>💡 <code>&quot;types&quot;: [&quot;vite/client&quot;]</code> est nécessaire pour typer <code>import.meta.env.*</code> (variables
+<code>VITE_…</code>) et les imports <code>?url</code> (ex. <code>import css from &#39;./styles.css?url&#39;</code>).</p>
+</blockquote>
+<h2 id="c1-2-4-gitignore">2.4 <code>.gitignore</code></h2>
+<pre><code>node_modules
+.output
+.nitro
+.tanstack
+dist
+*.local
+src/routeTree.gen.ts
+</code></pre>
+<blockquote>
+<p>⚠️ <strong><code>src/routeTree.gen.ts</code> est généré automatiquement</strong> par le plugin TanStack au premier
+<code>dev</code>/<code>build</code>. Ne le versionnez pas et ne l&#39;écrivez pas à la main.</p>
+</blockquote>
+<h2 id="c1-2-5-env-configuration-sinequa">2.5 <code>.env</code> — configuration Sinequa</h2>
+<pre><code class="language-bash"># Nom de l&#39;application Sinequa (propriété &quot;app&quot;). Requise pour la détection des
+# providers SSO (appInitializerFn) et pour les requêtes. Le login/mot de passe marche SANS.
+VITE_SINEQUA_APP=mint_rnd
+
+# Provider OAuth à utiliser, surchargeant celui auto-détecté par le serveur.
+# En proxy/dev, le serveur détecte &quot;identity&quot; (redirect_uri -&gt; serveur démo), mais seul
+# le provider de dev &quot;identity-dev&quot; (redirect_uri -&gt; https://localhost:4200) referme la boucle.
+VITE_SINEQUA_OAUTH_PROVIDER=identity-dev
+</code></pre>
+<blockquote>
+<p>💡 Les variables exposées au navigateur <strong>doivent</strong> être préfixées par <code>VITE_</code> (règle Vite).</p>
+</blockquote>
+<h2 id="c1-2-6-src-router-tsx">2.6 <code>src/router.tsx</code></h2>
+<pre><code class="language-tsx">import { createRouter } from &#39;@tanstack/react-router&#39;
+import { routeTree } from &#39;./routeTree.gen&#39;
+
+export function getRouter() {
+  const router = createRouter({
+    routeTree,
+    scrollRestoration: true,
+    defaultPreload: &#39;intent&#39;,
+  })
+  return router
+}
+
+declare module &#39;@tanstack/react-router&#39; {
+  interface Register {
+    router: ReturnType&lt;typeof getRouter&gt;
+  }
+}
+</code></pre>
+<p>À ce stade le squelette compile. Lancez :</p>
+<pre><code class="language-bash">npm run dev      # https://localhost:4200
+npm run build    # build client + SSR ; génère src/routeTree.gen.ts
+npm run typecheck
+</code></pre>
+<p>Au chapitre suivant, on étudie l&#39;API d&#39;authentification de <code>@sinequa/atomic</code> avant de l&#39;utiliser.</p>
+</section>
+<section class="chapter" id="chapter-2" data-index="2"><h1 id="c2-3-l-39-api-d-39-authentification-sinequa-atomic">3. L&#39;API d&#39;authentification <code>@sinequa/atomic</code></h1>
+<p>Avant d&#39;écrire du code, comprenons les fonctions exposées par la librairie et le <strong>cycle
+d&#39;authentification</strong>. Tout est importé depuis <code>@sinequa/atomic</code>.</p>
+<h2 id="c2-3-1-les-fonctions-cles">3.1 Les fonctions clés</h2>
+<table>
+<thead>
+<tr>
+<th>Fonction</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>setGlobalConfig(partial)</code></td>
+<td>Fusionne la config globale (<code>app</code>, <code>backendUrl</code>, <code>bearerToken</code>, <code>autoOAuthProvider</code>, <code>autoSAMLProvider</code>, <code>useCredentials</code>, <code>useSSO</code>, <code>useSAML</code>…).</td>
+</tr>
+<tr>
+<td><code>globalConfig</code></td>
+<td>L&#39;objet de configuration courant (lecture).</td>
+</tr>
+<tr>
+<td><code>appInitializerFn()</code></td>
+<td>À appeler <strong>au démarrage</strong> : détecte <code>backendUrl</code>/<code>app</code> depuis l&#39;URL et récupère la config <strong>pré-login</strong> du serveur (dont les providers SSO).</td>
+</tr>
+<tr>
+<td><code>login(credentials?)</code></td>
+<td>Avec <code>{ username, password }</code> → login JWT. <strong>Sans argument</strong> → tente SSO puis redirige vers OAuth/SAML si configuré. Émet l&#39;événement <code>&#39;authenticated&#39;</code>.</td>
+</tr>
+<tr>
+<td><code>getJWToken()</code></td>
+<td>Sans argument : utilise <code>globalConfig.bearerToken</code> (header <code>Authorization: Bearer</code>) pour obtenir et stocker le token CSRF.</td>
+</tr>
+<tr>
+<td><code>getCsrfToken()</code></td>
+<td>Récupère le token CSRF du serveur <strong>sans rediriger</strong> ; le stocke. Sert à récupérer <strong>silencieusement</strong> une session existante / un retour de redirection SSO.</td>
+</tr>
+<tr>
+<td><code>isAuthenticated()</code></td>
+<td><code>true</code> si un token CSRF est présent dans le <code>sessionStorage</code> (présence <strong>uniquement</strong>).</td>
+</tr>
+<tr>
+<td><code>fetchPrincipal()</code></td>
+<td>Renvoie l&#39;utilisateur courant (objet <code>Principal</code>).</td>
+</tr>
+<tr>
+<td><code>logout()</code></td>
+<td>Vide les tokens, supprime le cookie côté serveur, renvoie l&#39;éventuelle URL de logout.</td>
+</tr>
+<tr>
+<td><code>emitAuthenticatedEvent(bool)</code></td>
+<td>Émet l&#39;événement <code>&#39;authenticated&#39;</code> (sur <code>window</code>, via le <code>dispatchEvent</code> global).</td>
+</tr>
+</tbody></table>
+<p>Et pour la suite de l&#39;app : <code>fetchApp()</code> (config <code>CCApp</code>), <code>fetchQuery()</code> (recherche),
+<code>fetchPreview()</code> (aperçu document).</p>
+<h2 id="c2-3-2-le-cycle-d-39-authentification">3.2 Le cycle d&#39;authentification</h2>
+<pre><code class="language-text">login(credentials)        ── avec { username, password } ─▶  getJWToken(credentials)  ─▶  token CSRF stocké
+login()  (sans argument)  ── getCsrfToken() ──┬─ token présent ─▶  authentifié
+                                              └─ pas de token ─┬─ OAuth configuré ─▶ tryOAuthAuthentication() (redirige)
+                                                               └─ SAML configuré ─▶ trySAMLAuthentication() (redirige)
+</code></pre>
+<p>À la fin, <code>login()</code> <strong>émet</strong> l&#39;événement <code>&#39;authenticated&#39;</code> avec <code>{ detail: { authenticated: boolean } }</code>.</p>
+<h2 id="c2-3-3-le-flux-que-nous-allons-implementer">3.3 Le flux que nous allons implémenter</h2>
+<ul>
+<li><strong>Au démarrage (client)</strong> :
+<code>setGlobalConfig({ app })</code> → (option) forcer <code>autoOAuthProvider</code> → <code>appInitializerFn()</code>
+→ <code>getCsrfToken()</code> (silencieux) → <code>isAuthenticated()</code> → si OK, <code>fetchPrincipal()</code>.</li>
+<li><strong>Login / mot de passe</strong> → <code>login({ username, password })</code>.</li>
+<li><strong>Bearer</strong> → <code>setGlobalConfig({ bearerToken })</code> puis <code>getJWToken()</code> puis <code>emitAuthenticatedEvent(true)</code>.</li>
+<li><strong>SSO</strong> → <code>login()</code> (redirige vers le provider).</li>
+<li>On <strong>écoute</strong> l&#39;événement <code>&#39;authenticated&#39;</code> comme <strong>source de vérité</strong> de l&#39;état.</li>
+</ul>
+<h2 id="c2-3-4-pieges-importants">3.4 Pièges importants</h2>
+<blockquote>
+<p>⚠️ <strong>Ne jamais appeler <code>login()</code> (sans argument) automatiquement au démarrage.</strong> S&#39;il n&#39;y
+a pas de session <strong>et</strong> qu&#39;un provider est configuré, il <strong>redirige immédiatement</strong> vers le
+provider → vous tombez dans une <strong>boucle de redirection</strong> sur la page de login. On
+n&#39;appelle <code>login()</code> que sur un <strong>clic explicite</strong> « SSO ». Au démarrage, on se contente de
+<code>getCsrfToken()</code> (qui, lui, <strong>ne redirige pas</strong>) pour détecter une session existante.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong><code>isAuthenticated()</code> ne vérifie que la <em>présence</em> d&#39;un token</strong>, pas sa validité. Un
+token expiré renverra quand même <code>true</code>. C&#39;est suffisant pour piloter l&#39;UI ; une requête
+ultérieure avec un token expiré déclenchera une ré-authentification automatique.</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>Où est émis l&#39;événement ?</strong> <code>emitAuthenticatedEvent</code> utilise le <code>dispatchEvent</code>
+<strong>global</strong> (= <code>window</code>). On écoutera donc sur <code>window</code> (et sur <code>document</code> par sécurité).</p>
+</blockquote>
+<h2 id="c2-3-5-comment-inspecter-la-librairie">3.5 Comment inspecter la librairie</h2>
+<p>La doc publique est à <code>https://sinequa.github.io/sba-mint/atomic/</code>. En cas de page
+manquante, le plus fiable est d&#39;<strong>inspecter le package</strong> : les types <code>.d.ts</code> sont la source
+de vérité.</p>
+<pre><code class="language-bash">npm pack @sinequa/atomic                 # télécharge le .tgz
+tar -xzf sinequa-atomic-*.tgz package/dist/authentication
+# puis lire les .d.ts (login, logout, isAuthenticated, tokens, providers…)
+</code></pre>
+<p>Au chapitre suivant, on encapsule tout ça dans un <strong>contexte React</strong> client-only.</p>
+</section>
+<section class="chapter" id="chapter-3" data-index="3"><h1 id="c3-4-le-contexte-d-39-authentification-client-only">4. Le contexte d&#39;authentification (client-only)</h1>
+<p>C&#39;est le <strong>cœur</strong> de l&#39;intégration. Un <code>AuthProvider</code> React qui :</p>
+<ol>
+<li>effectue le <strong>bootstrap</strong> Sinequa (config + détection de session) <strong>au montage, côté client</strong> ;</li>
+<li>écoute l&#39;événement <code>&#39;authenticated&#39;</code> comme source de vérité ;</li>
+<li>expose l&#39;état (<code>initializing</code>, <code>authenticated</code>, <code>principal</code>, <code>providers</code>) et les actions
+(<code>loginWithCredentials</code>, <code>loginWithBearer</code>, <code>loginWithSSO</code>, <code>signOut</code>).</li>
+</ol>
+<h2 id="c3-4-1-src-auth-auth-context-tsx">4.1 <code>src/auth/auth-context.tsx</code></h2>
+<pre><code class="language-tsx">import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from &#39;react&#39;
+import {
+  appInitializerFn,
+  emitAuthenticatedEvent,
+  fetchPrincipal,
+  getCsrfToken,
+  getJWToken,
+  globalConfig,
+  isAuthenticated,
+  login,
+  logout,
+  setGlobalConfig,
+  type Principal,
+} from &#39;@sinequa/atomic&#39;
+
+type Providers = {
+  oauth?: string
+  saml?: string
+}
+
+type AuthContextValue = {
+  /** True while the initial client-side bootstrap (config + session check) runs. */
+  initializing: boolean
+  authenticated: boolean
+  principal: Principal | null
+  /** SSO providers advertised by the backend pre-login config, if any. */
+  providers: Providers
+  loginWithCredentials: (username: string, password: string) =&gt; Promise&lt;boolean&gt;
+  loginWithBearer: (token: string) =&gt; Promise&lt;boolean&gt;
+  loginWithSSO: (provider?: string, kind?: &#39;oauth&#39; | &#39;saml&#39;) =&gt; Promise&lt;boolean&gt;
+  signOut: () =&gt; Promise&lt;void&gt;
+}
+
+const AuthContext = createContext&lt;AuthContextValue | null&gt;(null)
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [initializing, setInitializing] = useState(true)
+  const [authenticated, setAuthenticated] = useState(false)
+  const [principal, setPrincipal] = useState&lt;Principal | null&gt;(null)
+  const [providers, setProviders] = useState&lt;Providers&gt;({})
+
+  // Keep a stable ref so the &#39;authenticated&#39; event listener can refresh the
+  // principal without being re-registered on every render.
+  const refreshPrincipal = useRef(async (isAuth: boolean) =&gt; {
+    if (!isAuth) {
+      setPrincipal(null)
+      return
+    }
+    try {
+      setPrincipal(await fetchPrincipal())
+    } catch {
+      setPrincipal(null)
+    }
+  })
+
+  // Client-only bootstrap: configure Sinequa, load pre-login providers, and
+  // detect an existing/SSO-returned session. None of this runs during SSR.
+  useEffect(() =&gt; {
+    let cancelled = false
+
+    async function bootstrap() {
+      const app = import.meta.env.VITE_SINEQUA_APP
+      if (app) setGlobalConfig({ app })
+
+      // Force a specific OAuth provider before init: appInitializerFn keeps an already-set
+      // autoOAuthProvider instead of the server&#39;s, letting us use the dev provider.
+      const oauthProvider = import.meta.env.VITE_SINEQUA_OAUTH_PROVIDER
+      if (oauthProvider) setGlobalConfig({ autoOAuthProvider: oauthProvider })
+
+      try {
+        // Populates backendUrl + auto OAuth/SAML providers from the server.
+        await appInitializerFn()
+      } catch {
+        // Pre-login may fail (e.g. app name not set); credential login still works.
+      }
+
+      try {
+        // Silently picks up an existing cookie/SSO redirect session. Does not redirect.
+        await getCsrfToken()
+      } catch {
+        // No ambient session — the user will authenticate explicitly.
+      }
+
+      if (cancelled) return
+      setProviders({
+        oauth: globalConfig.autoOAuthProvider || undefined,
+        saml: globalConfig.autoSAMLProvider || undefined,
+      })
+      const authed = isAuthenticated()
+      setAuthenticated(authed)
+      await refreshPrincipal.current(authed)
+      setInitializing(false)
+    }
+
+    void bootstrap()
+    return () =&gt; {
+      cancelled = true
+    }
+  }, [])
+
+  // The library emits &#39;authenticated&#39; on window (global dispatchEvent). We also
+  // listen on document to be safe across dispatch targets.
+  useEffect(() =&gt; {
+    const onAuthenticated = (event: Event) =&gt; {
+      const authed = (event as CustomEvent&lt;{ authenticated: boolean }&gt;).detail
+        .authenticated
+      setAuthenticated(authed)
+      void refreshPrincipal.current(authed)
+    }
+    window.addEventListener(&#39;authenticated&#39;, onAuthenticated)
+    document.addEventListener(&#39;authenticated&#39;, onAuthenticated)
+    return () =&gt; {
+      window.removeEventListener(&#39;authenticated&#39;, onAuthenticated)
+      document.removeEventListener(&#39;authenticated&#39;, onAuthenticated)
+    }
+  }, [])
+
+  const loginWithCredentials = useCallback(
+    (username: string, password: string) =&gt; login({ username, password }),
+    [],
+  )
+
+  const loginWithBearer = useCallback(async (token: string) =&gt; {
+    setGlobalConfig({ bearerToken: token })
+    await getJWToken() // stores the CSRF token, throws on failure
+    emitAuthenticatedEvent(true)
+    return true
+  }, [])
+
+  // No credentials =&gt; library attempts SSO, then redirects to OAuth/SAML if configured.
+  // The provider can be overridden (e.g. &quot;identity&quot; -&gt; &quot;identity-dev&quot;) before redirecting.
+  const loginWithSSO = useCallback(
+    (provider?: string, kind: &#39;oauth&#39; | &#39;saml&#39; = &#39;oauth&#39;) =&gt; {
+      if (provider) {
+        setGlobalConfig(
+          kind === &#39;saml&#39;
+            ? { autoSAMLProvider: provider, useSAML: true }
+            : { autoOAuthProvider: provider },
+        )
+      }
+      return login()
+    },
+    [],
+  )
+
+  const signOut = useCallback(async () =&gt; {
+    const redirectUrl = await logout()
+    if (redirectUrl) window.location.href = redirectUrl
+  }, [])
+
+  const value = useMemo&lt;AuthContextValue&gt;(
+    () =&gt; ({
+      initializing,
+      authenticated,
+      principal,
+      providers,
+      loginWithCredentials,
+      loginWithBearer,
+      loginWithSSO,
+      signOut,
+    }),
+    [
+      initializing,
+      authenticated,
+      principal,
+      providers,
+      loginWithCredentials,
+      loginWithBearer,
+      loginWithSSO,
+      signOut,
+    ],
+  )
+
+  return &lt;AuthContext.Provider value={value}&gt;{children}&lt;/AuthContext.Provider&gt;
+}
+
+export function useAuth() {
+  const ctx = useContext(AuthContext)
+  if (!ctx) throw new Error(&#39;useAuth must be used within an AuthProvider&#39;)
+  return ctx
+}
+</code></pre>
+<h2 id="c3-4-2-decryptage">4.2 Décryptage</h2>
+<ul>
+<li><strong>Tout le bootstrap est dans <code>useEffect</code></strong> → ne s&#39;exécute <strong>que</strong> côté client. Chaque appel
+réseau est dans un <code>try/catch</code> : si la pré-login échoue (ex. <code>app</code> non renseigné), le
+login/mot de passe reste possible.</li>
+<li><strong><code>getCsrfToken()</code> au démarrage</strong> récupère <strong>silencieusement</strong> une session existante (cookie
+déjà présent ou retour de redirection SSO) <strong>sans rediriger</strong>.</li>
+<li><strong>L&#39;événement <code>&#39;authenticated&#39;</code></strong> est la source de vérité : qu&#39;on se connecte par
+credentials, bearer ou SSO, l&#39;état se met à jour au même endroit, et le <code>principal</code> est
+rechargé.</li>
+<li><strong><code>loginWithBearer</code></strong> émet manuellement l&#39;événement après <code>getJWToken()</code>, car ce chemin ne
+passe pas par <code>login()</code>.</li>
+</ul>
+<h2 id="c3-4-3-pieges">4.3 Pièges</h2>
+<blockquote>
+<p>⚠️ <strong>Forcer le provider <em>avant</em> <code>appInitializerFn()</code></strong>. La fonction conserve un
+<code>autoOAuthProvider</code> déjà défini (<code>autoOAuthProvider || serveur</code>). Si on le posait après,
+il serait écrasé par la valeur du serveur. C&#39;est ce qui permet d&#39;imposer <code>identity-dev</code>.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong><code>refreshPrincipal</code> est figé dans un <code>useRef</code></strong> pour que le listener d&#39;événement ne
+soit pas réenregistré à chaque rendu (et reste stable malgré les changements d&#39;état).</p>
+</blockquote>
+<blockquote>
+<p>💡 Le <code>cancelled</code> (cleanup du <code>useEffect</code>) évite de mettre à jour l&#39;état si le composant est
+démonté avant la fin du bootstrap asynchrone (évite les warnings React).</p>
+</blockquote>
+<p>Le provider sera monté dans <code>__root.tsx</code> (chapitre <strong>Routes protégées</strong>). Voyons d&#39;abord l&#39;écran de login.</p>
+</section>
+<section class="chapter" id="chapter-4" data-index="4"><h1 id="c4-5-l-39-ecran-de-connexion-3-methodes">5. L&#39;écran de connexion (3 méthodes)</h1>
+<p>L&#39;écran <code>/login</code> propose trois onglets : <strong>Login/mot de passe</strong>, <strong>Bearer token</strong>, <strong>SSO</strong>.
+Il consomme le <code>useAuth()</code> du chapitre précédent.</p>
+<h2 id="c4-5-1-src-routes-login-tsx">5.1 <code>src/routes/login.tsx</code></h2>
+<pre><code class="language-tsx">import { useEffect, useState, type FormEvent } from &#39;react&#39;
+import { createFileRoute, useNavigate } from &#39;@tanstack/react-router&#39;
+import { useAuth } from &#39;../auth/auth-context&#39;
+import { ThemeToggle } from &#39;../theme/theme-context&#39;
+
+export const Route = createFileRoute(&#39;/login&#39;)({
+  component: LoginPage,
+})
+
+type Method = &#39;credentials&#39; | &#39;bearer&#39; | &#39;sso&#39;
+
+function LoginPage() {
+  const navigate = useNavigate()
+  const {
+    initializing,
+    authenticated,
+    providers,
+    loginWithCredentials,
+    loginWithBearer,
+    loginWithSSO,
+  } = useAuth()
+
+  const [method, setMethod] = useState&lt;Method&gt;(&#39;credentials&#39;)
+  const [username, setUsername] = useState(&#39;&#39;)
+  const [password, setPassword] = useState(&#39;&#39;)
+  const [bearer, setBearer] = useState(&#39;&#39;)
+  const [ssoProvider, setSsoProvider] = useState(&#39;&#39;)
+  const [error, setError] = useState&lt;string | null&gt;(null)
+  const [busy, setBusy] = useState(false)
+
+  // Provider detected from the backend pre-login config (OAuth has priority).
+  const detectedProvider = providers.oauth ?? providers.saml ?? &#39;&#39;
+  const providerKind: &#39;oauth&#39; | &#39;saml&#39; =
+    providers.saml &amp;&amp; !providers.oauth ? &#39;saml&#39; : &#39;oauth&#39;
+
+  // Once authenticated, leave the login screen.
+  useEffect(() =&gt; {
+    if (authenticated) void navigate({ to: &#39;/&#39; })
+  }, [authenticated, navigate])
+
+  // Pre-fill the SSO provider field with the detected one, without clobbering user edits.
+  useEffect(() =&gt; {
+    setSsoProvider((current) =&gt; current || detectedProvider)
+  }, [detectedProvider])
+
+  async function run(action: () =&gt; Promise&lt;boolean&gt;) {
+    setError(null)
+    setBusy(true)
+    try {
+      const ok = await action()
+      if (!ok) setError(&#39;Échec de l’authentification. Vérifiez vos informations.&#39;)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : &#39;Erreur inattendue.&#39;)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function onSubmitCredentials(e: FormEvent) {
+    e.preventDefault()
+    void run(() =&gt; loginWithCredentials(username, password))
+  }
+
+  function onSubmitBearer(e: FormEvent) {
+    e.preventDefault()
+    void run(() =&gt; loginWithBearer(bearer))
+  }
+
+  return (
+    &lt;div className=&quot;center&quot;&gt;
+      &lt;div className=&quot;login-topbar&quot;&gt;
+        &lt;ThemeToggle /&gt;
+      &lt;/div&gt;
+      &lt;div className=&quot;card&quot;&gt;
+        &lt;h1&gt;Connexion Sinequa&lt;/h1&gt;
+        &lt;p className=&quot;subtitle&quot;&gt;Authentifiez-vous au backend Sinequa.&lt;/p&gt;
+
+        &lt;div className=&quot;tabs&quot;&gt;
+          &lt;button
+            className={method === &#39;credentials&#39; ? &#39;active&#39; : &#39;&#39;}
+            onClick={() =&gt; setMethod(&#39;credentials&#39;)}
+          &gt;
+            Login / mot de passe
+          &lt;/button&gt;
+          &lt;button
+            className={method === &#39;bearer&#39; ? &#39;active&#39; : &#39;&#39;}
+            onClick={() =&gt; setMethod(&#39;bearer&#39;)}
+          &gt;
+            Bearer token
+          &lt;/button&gt;
+          &lt;button
+            className={method === &#39;sso&#39; ? &#39;active&#39; : &#39;&#39;}
+            onClick={() =&gt; setMethod(&#39;sso&#39;)}
+          &gt;
+            SSO
+          &lt;/button&gt;
+        &lt;/div&gt;
+
+        {error &amp;&amp; &lt;p className=&quot;error&quot;&gt;{error}&lt;/p&gt;}
+
+        {method === &#39;credentials&#39; &amp;&amp; (
+          &lt;form onSubmit={onSubmitCredentials}&gt;
+            &lt;label htmlFor=&quot;username&quot;&gt;Identifiant&lt;/label&gt;
+            &lt;input
+              id=&quot;username&quot;
+              autoComplete=&quot;username&quot;
+              value={username}
+              onChange={(e) =&gt; setUsername(e.target.value)}
+              required
+            /&gt;
+            &lt;label htmlFor=&quot;password&quot;&gt;Mot de passe&lt;/label&gt;
+            &lt;input
+              id=&quot;password&quot;
+              type=&quot;password&quot;
+              autoComplete=&quot;current-password&quot;
+              value={password}
+              onChange={(e) =&gt; setPassword(e.target.value)}
+              required
+            /&gt;
+            &lt;button className=&quot;primary&quot; type=&quot;submit&quot; disabled={busy}&gt;
+              {busy ? &#39;Connexion…&#39; : &#39;Se connecter&#39;}
+            &lt;/button&gt;
+          &lt;/form&gt;
+        )}
+
+        {method === &#39;bearer&#39; &amp;&amp; (
+          &lt;form onSubmit={onSubmitBearer}&gt;
+            &lt;label htmlFor=&quot;bearer&quot;&gt;Bearer token&lt;/label&gt;
+            &lt;input
+              id=&quot;bearer&quot;
+              value={bearer}
+              onChange={(e) =&gt; setBearer(e.target.value)}
+              placeholder=&quot;eyJhbGciOi…&quot;
+              required
+            /&gt;
+            &lt;button className=&quot;primary&quot; type=&quot;submit&quot; disabled={busy}&gt;
+              {busy ? &#39;Connexion…&#39; : &#39;Se connecter&#39;}
+            &lt;/button&gt;
+          &lt;/form&gt;
+        )}
+
+        {method === &#39;sso&#39; &amp;&amp; (
+          &lt;div&gt;
+            &lt;label htmlFor=&quot;provider&quot;&gt;
+              Provider {providerKind === &#39;saml&#39; ? &#39;(SAML)&#39; : &#39;(OAuth)&#39;}
+            &lt;/label&gt;
+            &lt;input
+              id=&quot;provider&quot;
+              value={ssoProvider}
+              onChange={(e) =&gt; setSsoProvider(e.target.value)}
+              placeholder={initializing ? &#39;Détection…&#39; : &#39;identity-dev&#39;}
+            /&gt;
+            &lt;button
+              className=&quot;primary&quot;
+              disabled={busy || initializing || !ssoProvider}
+              onClick={() =&gt;
+                void run(() =&gt; loginWithSSO(ssoProvider, providerKind))
+              }
+            &gt;
+              {busy ? &#39;Redirection…&#39; : `Se connecter via ${ssoProvider || &#39;SSO&#39;}`}
+            &lt;/button&gt;
+            {!initializing &amp;&amp; !detectedProvider &amp;&amp; (
+              &lt;p className=&quot;hint&quot;&gt;
+                Aucun provider détecté automatiquement. Saisissez-en un (ex.
+                identity-dev) ou vérifiez VITE_SINEQUA_APP dans le fichier .env.
+              &lt;/p&gt;
+            )}
+            {detectedProvider &amp;&amp; ssoProvider !== detectedProvider &amp;&amp; (
+              &lt;p className=&quot;hint&quot;&gt;
+                Détecté : &lt;code&gt;{detectedProvider}&lt;/code&gt; — surchargé par{&#39; &#39;}
+                &lt;code&gt;{ssoProvider}&lt;/code&gt;.
+              &lt;/p&gt;
+            )}
+          &lt;/div&gt;
+        )}
+      &lt;/div&gt;
+    &lt;/div&gt;
+  )
+}
+</code></pre>
+<h2 id="c4-5-2-decryptage">5.2 Décryptage</h2>
+<ul>
+<li>Le helper <strong><code>run()</code></strong> centralise <code>busy</code>/<code>error</code> autour de n&#39;importe quelle action de login.</li>
+<li><strong>Redirection post-login</strong> : un <code>useEffect</code> surveille <code>authenticated</code> et navigue vers <code>/</code>
+dès qu&#39;il passe à <code>true</code> (peu importe la méthode utilisée).</li>
+<li><strong>Champ SSO éditable</strong> : pré-rempli avec le provider détecté (<code>providers.oauth</code>), mais
+<strong>modifiable</strong> — la valeur saisie est transmise à <code>loginWithSSO(provider, kind)</code>. Indispensable
+pour passer de <code>identity</code> à <code>identity-dev</code> (chapitre suivant).</li>
+</ul>
+<h2 id="c4-5-3-pieges">5.3 Pièges</h2>
+<blockquote>
+<p>💡 <strong>Pré-remplissage sans écraser l&#39;utilisateur</strong> : <code>setSsoProvider((current) =&gt; current || detected)</code>
+n&#39;écrit la valeur détectée que si le champ est encore vide. Sans ce garde-fou, le bootstrap
+(asynchrone) écraserait une saisie en cours.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong><code>mint_rnd</code> n&#39;annonce pas le login/mot de passe</strong> en pré-login (seul l&#39;OAuth est
+exposé). Les onglets login/mdp et Bearer restent câblés et fonctionnels si le serveur
+l&#39;accepte ; à valider avec un compte de test.</p>
+</blockquote>
+<p>Place au chapitre le plus subtil : le <strong>SSO OAuth via Keycloak</strong>.</p>
+</section>
+<section class="chapter" id="chapter-5" data-index="5"><h1 id="c5-6-sso-oauth-via-keycloak-le-chapitre-des-pieges">6. SSO OAuth via Keycloak (le chapitre des pièges)</h1>
+<p>C&#39;est ici que se concentrent les difficultés réelles. Le SSO de l&#39;application <code>mint_rnd</code>
+passe par un <strong>Keycloak</strong> (OIDC + PKCE). Comprendre le flux <strong>et</strong> la contrainte du
+<code>redirect_uri</code> est indispensable.</p>
+<h2 id="c5-6-1-comment-l-39-app-decouvre-le-sso">6.1 Comment l&#39;app découvre le SSO</h2>
+<p><code>appInitializerFn()</code> appelle <code>GET /api/v1/app?app=mint_rnd&amp;preLogin=true</code>. Pour <code>mint_rnd</code>,
+la réponse contient :</p>
+<pre><code class="language-json">{ &quot;autoOAuthProvider&quot;: &quot;identity&quot;, &quot;autoSAMLProvider&quot;: &quot;&quot;, &quot;providers&quot;: {} }
+</code></pre>
+<p>Donc le provider OAuth auto-détecté est <strong><code>identity</code></strong>. Au clic « SSO », la lib fait :</p>
+<pre><code class="language-text">POST /api/v1/security.oauth   { action: &quot;getcode&quot;, provider, tokenInCookie: true, originalUrl }
+   └─▶ réponse 302 vers la page de login du provider (Keycloak), puis redirection navigateur
+</code></pre>
+<h2 id="c5-6-2-le-piege-du-redirect-uri-pourquoi-identity-dev-et-le-port-4200">6.2 Le piège du <code>redirect_uri</code> — pourquoi <code>identity-dev</code> et le port 4200</h2>
+<p>En testant le provider <strong><code>identity</code></strong> auto-détecté, le <code>redirect_uri</code> renvoyé pointe vers le
+<strong>serveur démo</strong> (<code>https://su-sba.demo.sinequa.com/auth/redirect</code>). Après login Keycloak, le
+navigateur reviendrait donc sur le serveur démo, <strong>pas</strong> sur notre app locale → la session ne
+se referme jamais côté app.</p>
+<p>En testant <strong><code>identity-dev</code></strong>, le <code>redirect_uri</code> renvoyé est :</p>
+<pre><code class="language-text">https://login.coe.chapsvision.com/realms/ChapsVision/protocol/openid-connect/auth
+  ?response_type=code&amp;scope=email&amp;client_id=su-sba
+  &amp;redirect_uri=https%3A%2F%2Flocalhost%3A4200%2Fauth%2Fredirect
+  &amp;state=…&amp;code_challenge=…&amp;code_challenge_method=S256
+</code></pre>
+<p>→ <code>redirect_uri = https://localhost:4200/auth/redirect</code>. <strong>D&#39;où</strong> :</p>
+<blockquote>
+<p>⚠️ <strong>Trois contraintes liées entre elles</strong> :</p>
+<ol>
+<li>utiliser le provider <strong><code>identity-dev</code></strong> (pas <code>identity</code>) → <code>VITE_SINEQUA_OAUTH_PROVIDER=identity-dev</code> ;</li>
+<li>servir l&#39;app sur le <strong>port 4200</strong> ;</li>
+<li>en <strong>HTTPS</strong> (<code>@vitejs/plugin-basic-ssl</code>).</li>
+</ol>
+<p>Les trois doivent correspondre <strong>exactement</strong> au <code>redirect_uri</code> enregistré côté serveur,
+sinon Keycloak refuse le retour. C&#39;est ce qui explique le <code>vite.config.ts</code> du chapitre 2.</p>
+</blockquote>
+<h2 id="c5-6-3-forcer-le-provider-rappel">6.3 Forcer le provider (rappel)</h2>
+<p>Dans <code>auth-context.tsx</code>, on impose le provider <strong>avant</strong> <code>appInitializerFn()</code> (qui conserve
+une valeur déjà définie) :</p>
+<pre><code class="language-tsx">const oauthProvider = import.meta.env.VITE_SINEQUA_OAUTH_PROVIDER
+if (oauthProvider) setGlobalConfig({ autoOAuthProvider: oauthProvider })
+await appInitializerFn() // garde &quot;identity-dev&quot;, n&#39;écrase pas avec &quot;identity&quot;
+</code></pre>
+<p>Et le bouton SSO permet de surcharger ce provider à la volée (<code>loginWithSSO(ssoProvider, kind)</code>).</p>
+<h2 id="c5-6-4-le-retour-de-redirection">6.4 Le retour de redirection</h2>
+<p>Après authentification, Keycloak renvoie le navigateur vers
+<code>https://localhost:4200/auth/redirect?code=…&amp;state=…</code>. Le <strong>proxy Vite</strong> relaie <code>/auth/redirect</code>
+vers Sinequa, qui échange le code, <strong>pose le cookie de session</strong>, puis renvoie vers l&#39;app. Au
+rechargement, le <code>getCsrfToken()</code> du bootstrap récupère le token CSRF → <code>isAuthenticated()</code>
+devient <code>true</code> → l&#39;app affiche l&#39;écran authentifié.</p>
+<h2 id="c5-6-5-tester-le-flux-sans-mot-de-passe-au-niveau-http">6.5 Tester le flux sans mot de passe (au niveau HTTP)</h2>
+<p>On peut prouver tout le câblage jusqu&#39;à Keycloak <strong>sans identifiants</strong>, via le proxy :</p>
+<pre><code class="language-powershell">$body = @{ action=&#39;getcode&#39;; provider=&#39;identity-dev&#39;; tokenInCookie=$true; originalUrl=&#39;https://localhost:4200/login&#39; } | ConvertTo-Json
+$r = Invoke-WebRequest &quot;https://localhost:4200/api/v1/security.oauth&quot; -Method POST `
+  -ContentType &#39;application/json&#39; -Body $body -SkipCertificateCheck -MaximumRedirection 0 -SkipHttpErrorCheck
+[string]($r.Headers[&#39;Location&#39;] | Select-Object -First 1)
+# Attendu : 302 vers .../openid-connect/auth?...&amp;redirect_uri=https://localhost:4200/auth/redirect
+</code></pre>
+<blockquote>
+<p>💡 <strong>Diagnostiquer un provider inconnu</strong> : si le serveur répond
+<code>{&quot;ErrorMessage&quot;:&quot;OAuth provider not found: &lt;nom&gt;&quot;}</code> (HTTP 500), c&#39;est que le nom de
+provider n&#39;existe pas sur ce backend. Vérifiez l&#39;orthographe exacte (ex. <code>identity-dev</code>
+avec un tiret, pas <code>identity_dev</code>).</p>
+</blockquote>
+<p>La saisie du mot de passe sur la page Keycloak reste <strong>interactive</strong> : on s&#39;arrête à cette
+page lors des tests automatisés. Le reste (redirection, retour, session) est vérifiable.</p>
+<p>Au chapitre suivant : structurer les <strong>routes protégées</strong>.</p>
+</section>
+<section class="chapter" id="chapter-6" data-index="6"><h1 id="c6-7-routes-protegees-document-racine-amp-profil">7. Routes protégées, document racine &amp; profil</h1>
+<p>On monte les providers dans le <strong>document racine</strong>, puis on protège un groupe de routes avec
+<strong>un seul</strong> garde via un <strong>layout pathless</strong> TanStack Router.</p>
+<h2 id="c6-7-1-src-routes-root-tsx-document-html-providers">7.1 <code>src/routes/__root.tsx</code> — document HTML + providers</h2>
+<pre><code class="language-tsx">/// &lt;reference types=&quot;vite/client&quot; /&gt;
+import type { ReactNode } from &#39;react&#39;
+import {
+  Outlet,
+  createRootRoute,
+  HeadContent,
+  Scripts,
+} from &#39;@tanstack/react-router&#39;
+import { AuthProvider } from &#39;../auth/auth-context&#39;
+import { ThemeProvider } from &#39;../theme/theme-context&#39;
+import appCss from &#39;../styles.css?url&#39;
+
+// Runs before paint to apply the saved theme on &lt;html&gt;, avoiding a flash of the wrong theme.
+const themeScript = `(function(){try{var t=localStorage.getItem(&#39;theme&#39;);document.documentElement.setAttribute(&#39;data-theme&#39;,t===&#39;light&#39;?&#39;light&#39;:&#39;dark&#39;)}catch(e){document.documentElement.setAttribute(&#39;data-theme&#39;,&#39;dark&#39;)}})()`
+
+export const Route = createRootRoute({
+  head: () =&gt; ({
+    meta: [
+      { charSet: &#39;utf-8&#39; },
+      { name: &#39;viewport&#39;, content: &#39;width=device-width, initial-scale=1&#39; },
+      { title: &#39;Sinequa Login Demo&#39; },
+    ],
+    links: [{ rel: &#39;stylesheet&#39;, href: appCss }],
+  }),
+  component: RootComponent,
+})
+
+function RootComponent() {
+  return (
+    &lt;RootDocument&gt;
+      &lt;ThemeProvider&gt;
+        &lt;AuthProvider&gt;
+          &lt;Outlet /&gt;
+        &lt;/AuthProvider&gt;
+      &lt;/ThemeProvider&gt;
+    &lt;/RootDocument&gt;
+  )
+}
+
+function RootDocument({ children }: Readonly&lt;{ children: ReactNode }&gt;) {
+  return (
+    // The pre-paint script mutates data-theme before hydration; that divergence is expected.
+    &lt;html lang=&quot;en&quot; suppressHydrationWarning&gt;
+      &lt;head&gt;
+        &lt;script dangerouslySetInnerHTML={{ __html: themeScript }} /&gt;
+        &lt;HeadContent /&gt;
+      &lt;/head&gt;
+      &lt;body&gt;
+        {children}
+        &lt;Scripts /&gt;
+      &lt;/body&gt;
+    &lt;/html&gt;
+  )
+}
+</code></pre>
+<p>(Le <code>themeScript</code> et <code>suppressHydrationWarning</code> sont expliqués au chapitre <strong>Thème</strong>.)</p>
+<h2 id="c6-7-2-la-structure-des-routes">7.2 La structure des routes</h2>
+<pre><code class="language-text">src/routes/
+  __root.tsx          # document HTML + providers (public)
+  login.tsx           # /login (public)
+  _protected.tsx      # layout pathless : garde + barre de nav
+  _protected/
+    index.tsx         # /          accueil
+    profile.tsx       # /profile   infos du principal
+    search.tsx        # /search    recherche
+</code></pre>
+<blockquote>
+<p>💡 Un <strong>layout pathless</strong> (préfixe <code>_</code>) n&#39;ajoute <strong>pas</strong> de segment d&#39;URL : il enveloppe ses
+enfants d&#39;un layout commun. Idéal pour mutualiser la garde d&#39;authentification.</p>
+</blockquote>
+<h2 id="c6-7-3-src-routes-protected-tsx-la-garde-unique">7.3 <code>src/routes/_protected.tsx</code> — la garde unique</h2>
+<pre><code class="language-tsx">import { useEffect } from &#39;react&#39;
+import {
+  createFileRoute,
+  Link,
+  Outlet,
+  useNavigate,
+} from &#39;@tanstack/react-router&#39;
+import { useAuth } from &#39;../auth/auth-context&#39;
+import { ThemeToggle } from &#39;../theme/theme-context&#39;
+
+export const Route = createFileRoute(&#39;/_protected&#39;)({
+  component: ProtectedLayout,
+})
+
+// Single auth guard shared by every child route. The check is client-side because
+// the session lives in the browser (sessionStorage), so it runs after bootstrap.
+function ProtectedLayout() {
+  const navigate = useNavigate()
+  const { initializing, authenticated, principal, signOut } = useAuth()
+
+  useEffect(() =&gt; {
+    if (!initializing &amp;&amp; !authenticated) void navigate({ to: &#39;/login&#39; })
+  }, [initializing, authenticated, navigate])
+
+  if (initializing) {
+    return (
+      &lt;div className=&quot;center&quot;&gt;
+        &lt;p className=&quot;subtitle&quot;&gt;Vérification de la session…&lt;/p&gt;
+      &lt;/div&gt;
+    )
+  }
+
+  if (!authenticated) return null // redirecting to /login
+
+  return (
+    &lt;div className=&quot;layout&quot;&gt;
+      &lt;nav className=&quot;topbar&quot;&gt;
+        &lt;div className=&quot;nav-links&quot;&gt;
+          &lt;Link to=&quot;/&quot; activeOptions={{ exact: true }} className=&quot;nav-link&quot;&gt;
+            Accueil
+          &lt;/Link&gt;
+          &lt;Link to=&quot;/profile&quot; className=&quot;nav-link&quot;&gt;
+            Profil
+          &lt;/Link&gt;
+          &lt;Link to=&quot;/search&quot; className=&quot;nav-link&quot;&gt;
+            Recherche
+          &lt;/Link&gt;
+        &lt;/div&gt;
+        &lt;div className=&quot;nav-right&quot;&gt;
+          &lt;span className=&quot;nav-user&quot;&gt;
+            {principal?.fullName || principal?.name || &#39;&#39;}
+          &lt;/span&gt;
+          &lt;ThemeToggle /&gt;
+          &lt;button className=&quot;ghost&quot; onClick={() =&gt; void signOut()}&gt;
+            Se déconnecter
+          &lt;/button&gt;
+        &lt;/div&gt;
+      &lt;/nav&gt;
+      &lt;main className=&quot;content&quot;&gt;
+        &lt;Outlet /&gt;
+      &lt;/main&gt;
+    &lt;/div&gt;
+  )
+}
+</code></pre>
+<blockquote>
+<p>⚠️ <strong>La garde est dans un <code>useEffect</code>, pas dans un <code>loader</code>.</strong> Un <code>loader</code> TanStack
+s&#39;exécute <strong>côté serveur</strong> (SSR), où <code>isAuthenticated()</code> n&#39;a pas accès au <code>sessionStorage</code>.
+On garde donc côté client : pendant <code>initializing</code>, on affiche un écran d&#39;attente ; ensuite,
+si non authentifié, on redirige vers <code>/login</code>.</p>
+</blockquote>
+<h2 id="c6-7-4-accueil-src-routes-protected-index-tsx">7.4 Accueil — <code>src/routes/_protected/index.tsx</code></h2>
+<pre><code class="language-tsx">import { createFileRoute, Link } from &#39;@tanstack/react-router&#39;
+import { useAuth } from &#39;../../auth/auth-context&#39;
+
+export const Route = createFileRoute(&#39;/_protected/&#39;)({
+  component: HomePage,
+})
+
+function HomePage() {
+  const { principal } = useAuth()
+
+  return (
+    &lt;div className=&quot;page&quot;&gt;
+      &lt;span className=&quot;badge&quot;&gt;✓ Authentifié&lt;/span&gt;
+      &lt;h1&gt;Bienvenue{principal?.fullName ? `, ${principal.fullName}` : &#39;&#39;}&lt;/h1&gt;
+      &lt;p className=&quot;subtitle&quot;&gt;Vous êtes connecté au backend Sinequa.&lt;/p&gt;
+
+      &lt;div className=&quot;cards&quot;&gt;
+        &lt;Link to=&quot;/profile&quot; className=&quot;link-card&quot;&gt;
+          &lt;h2&gt;Profil&lt;/h2&gt;
+          &lt;p&gt;Voir les informations de votre compte (principal).&lt;/p&gt;
+        &lt;/Link&gt;
+        &lt;Link to=&quot;/search&quot; className=&quot;link-card&quot;&gt;
+          &lt;h2&gt;Recherche&lt;/h2&gt;
+          &lt;p&gt;Interroger l&#39;index Sinequa.&lt;/p&gt;
+        &lt;/Link&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  )
+}
+</code></pre>
+<blockquote>
+<p>💡 <strong>Convention de nommage</strong> : <code>createFileRoute(&#39;/_protected/&#39;)</code> pour l&#39;index (le <code>/</code> final),
+<code>&#39;/_protected/profile&#39;</code>, <code>&#39;/_protected/search&#39;</code>. Le plugin TanStack régénère
+<code>routeTree.gen.ts</code> automatiquement au <code>dev</code>/<code>build</code>.</p>
+</blockquote>
+<h2 id="c6-7-5-profil-src-routes-protected-profile-tsx">7.5 Profil — <code>src/routes/_protected/profile.tsx</code></h2>
+<pre><code class="language-tsx">import { Fragment } from &#39;react&#39;
+import { createFileRoute } from &#39;@tanstack/react-router&#39;
+import { useAuth } from &#39;../../auth/auth-context&#39;
+
+export const Route = createFileRoute(&#39;/_protected/profile&#39;)({
+  component: ProfilePage,
+})
+
+function ProfilePage() {
+  const { principal } = useAuth()
+
+  if (!principal) {
+    return (
+      &lt;div className=&quot;page&quot;&gt;
+        &lt;h1&gt;Profil&lt;/h1&gt;
+        &lt;p className=&quot;subtitle&quot;&gt;Aucune information principal disponible.&lt;/p&gt;
+      &lt;/div&gt;
+    )
+  }
+
+  const fields: Array&lt;[string, string]&gt; = [
+    [&#39;Nom complet&#39;, principal.fullName],
+    [&#39;Nom&#39;, principal.name],
+    [&#39;Nom long&#39;, principal.longName],
+    [&#39;Identifiant (userId)&#39;, principal.userId],
+    [&#39;Id&#39;, principal.id],
+    [&#39;Email&#39;, principal.email],
+    [&#39;Administrateur&#39;, principal.isAdministrator ? &#39;Oui&#39; : &#39;Non&#39;],
+    [&#39;Admin délégué&#39;, principal.isDelegatedAdmin ? &#39;Oui&#39; : &#39;Non&#39;],
+  ]
+
+  return (
+    &lt;div className=&quot;page&quot;&gt;
+      &lt;h1&gt;Profil&lt;/h1&gt;
+      &lt;p className=&quot;subtitle&quot;&gt;Informations du compte (principal Sinequa).&lt;/p&gt;
+
+      &lt;dl className=&quot;kv&quot;&gt;
+        {fields
+          .filter(([, value]) =&gt; value !== undefined &amp;&amp; value !== &#39;&#39;)
+          .map(([label, value]) =&gt; (
+            &lt;Fragment key={label}&gt;
+              &lt;dt&gt;{label}&lt;/dt&gt;
+              &lt;dd&gt;{value}&lt;/dd&gt;
+            &lt;/Fragment&gt;
+          ))}
+      &lt;/dl&gt;
+
+      &lt;details className=&quot;raw&quot;&gt;
+        &lt;summary&gt;Voir l&#39;objet principal complet (JSON)&lt;/summary&gt;
+        &lt;pre&gt;{JSON.stringify(principal, null, 2)}&lt;/pre&gt;
+      &lt;/details&gt;
+    &lt;/div&gt;
+  )
+}
+</code></pre>
+<p>Le principal vient du <code>useAuth()</code> (chargé par <code>fetchPrincipal()</code> au bootstrap). Chapitre
+suivant : la <strong>recherche</strong> et sa <strong>pagination</strong>.</p>
+</section>
+<section class="chapter" id="chapter-7" data-index="7"><h1 id="c7-8-recherche-amp-pagination">8. Recherche &amp; pagination</h1>
+<p>La page <code>/search</code> découvre le <strong>nom du web service de query</strong> via <code>fetchApp()</code>, lance la
+recherche avec <code>fetchQuery()</code>, affiche les résultats et les <strong>pagine</strong>.</p>
+<h2 id="c7-8-1-trouver-le-nom-de-la-query-fetchapp">8.1 Trouver le nom de la query : <code>fetchApp()</code></h2>
+<p><code>fetchQuery</code> a besoin d&#39;un <code>name</code> (le web service de query configuré sur l&#39;app). On ne le
+code pas en dur : on lit la config applicative.</p>
+<ul>
+<li><code>fetchApp()</code> → objet <code>CCApp</code>.</li>
+<li><code>CCApp.queries</code> est un <code>Record&lt;string, CCQuery&gt;</code> (clé = nom de query).</li>
+<li><code>CCApp.defaultQueryName</code> donne la query par défaut.</li>
+</ul>
+<pre><code class="language-tsx">const app = await fetchApp()
+const names = Object.keys(app.queries ?? {})
+const queryName = app.defaultQueryName || names[0] || &#39;&#39;
+</code></pre>
+<h2 id="c7-8-2-lancer-une-recherche-fetchquery">8.2 Lancer une recherche : <code>fetchQuery()</code></h2>
+<p><code>fetchQuery(query)</code> poste sur <code>/api/v1/query</code> et renvoie un <code>Result</code> :</p>
+<ul>
+<li><code>result.records: Article[]</code> — les documents ;</li>
+<li><code>result.page</code>, <code>result.pageSize</code>, <code>result.rowCount</code> — la pagination.</li>
+</ul>
+<blockquote>
+<p>💡 <strong><code>pageSize</code> est personnalisable.</strong> On le pilote via un <code>&lt;select&gt;</code> (« N / page ») et on
+le passe à <code>fetchQuery({ …, pageSize })</code>. Une valeur par défaut existe côté serveur
+(<code>CCQuery.pageSize</code>). <strong>Astuce robustesse</strong> : la pagination se calcule <strong>depuis la réponse</strong>
+(<code>result.page</code>, <code>result.pageSize</code>, <code>result.rowCount</code>) — donc même si le serveur <strong>borne</strong> la
+taille demandée, l&#39;UI reste cohérente.</p>
+</blockquote>
+<h2 id="c7-8-3-src-routes-protected-search-tsx-recherche-pagination">8.3 <code>src/routes/_protected/search.tsx</code> (recherche + pagination)</h2>
+<blockquote>
+<p><em>Le composant ci-dessous inclut aussi la <strong>preview</strong> (chapitre 9) et le panneau de
+<strong>métadonnées</strong> ; ils sont détaillés au chapitre suivant. On se concentre ici sur la
+recherche et la pagination.</em></p>
+</blockquote>
+<pre><code class="language-tsx">import { Fragment, useEffect, useState, type FormEvent } from &#39;react&#39;
+import { createFileRoute } from &#39;@tanstack/react-router&#39;
+import {
+  fetchApp,
+  fetchPreview,
+  fetchQuery,
+  type Article,
+  type PreviewData,
+  type Result,
+} from &#39;@sinequa/atomic&#39;
+import { Sheet } from &#39;../../components/sheet&#39;
+
+export const Route = createFileRoute(&#39;/_protected/search&#39;)({
+  component: SearchPage,
+})
+
+function SearchPage() {
+  // Query web service name(s) from the app config (CCApp.queries / defaultQueryName).
+  const [queryNames, setQueryNames] = useState&lt;string[]&gt;([])
+  const [queryName, setQueryName] = useState(&#39;&#39;)
+  const [configError, setConfigError] = useState&lt;string | null&gt;(null)
+
+  const [text, setText] = useState(&#39;&#39;)
+  const [searchedText, setSearchedText] = useState(&#39;&#39;)
+  const [pageSize, setPageSize] = useState(10)
+  const [result, setResult] = useState&lt;Result | null&gt;(null)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState&lt;string | null&gt;(null)
+
+  // Preview sheet state (see next chapter).
+  const [selected, setSelected] = useState&lt;Article | null&gt;(null)
+  const [preview, setPreview] = useState&lt;PreviewData | null&gt;(null)
+  const [previewBusy, setPreviewBusy] = useState(false)
+  const [previewError, setPreviewError] = useState&lt;string | null&gt;(null)
+
+  useEffect(() =&gt; {
+    let cancelled = false
+    fetchApp()
+      .then((app) =&gt; {
+        if (cancelled) return
+        const names = Object.keys(app.queries ?? {})
+        setQueryNames(names)
+        setQueryName(app.defaultQueryName || names[0] || &#39;&#39;)
+      })
+      .catch((err) =&gt; {
+        if (!cancelled)
+          setConfigError(
+            err instanceof Error
+              ? err.message
+              : &quot;Impossible de charger la configuration de l&#39;app.&quot;,
+          )
+      })
+    return () =&gt; {
+      cancelled = true
+    }
+  }, [])
+
+  async function runSearch(query: string, page: number, size = pageSize) {
+    if (!query.trim() || !queryName) return
+    setBusy(true)
+    setError(null)
+    try {
+      // pageSize is passed explicitly (chosen via the dropdown); the response still drives
+      // the pagination math below, in case the server clamps the requested size.
+      setResult(
+        await fetchQuery({ name: queryName, text: query, page, pageSize: size }),
+      )
+      setSearchedText(query)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : &#39;La recherche a échoué.&#39;)
+      setResult(null)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    void runSearch(text, 1)
+  }
+
+  async function openPreview(record: Article) {
+    setSelected(record)
+    setPreview(null)
+    setPreviewError(null)
+    setPreviewBusy(true)
+    try {
+      setPreview(await fetchPreview(record.id, { name: queryName, text }))
+    } catch (err) {
+      setPreviewError(
+        err instanceof Error ? err.message : &quot;Impossible de charger l&#39;aperçu.&quot;,
+      )
+    } finally {
+      setPreviewBusy(false)
+    }
+  }
+
+  return (
+    &lt;div className=&quot;page&quot;&gt;
+      &lt;h1&gt;Recherche&lt;/h1&gt;
+      &lt;p className=&quot;subtitle&quot;&gt;
+        {queryName ? (
+          &lt;&gt;
+            Interroge le web service &lt;code&gt;{queryName}&lt;/code&gt; du backend Sinequa.
+          &lt;/&gt;
+        ) : (
+          &#39;Chargement de la configuration…&#39;
+        )}
+      &lt;/p&gt;
+
+      {configError &amp;&amp; &lt;p className=&quot;error&quot;&gt;{configError}&lt;/p&gt;}
+
+      &lt;form className=&quot;search-form&quot; onSubmit={onSubmit}&gt;
+        {queryNames.length &gt; 1 &amp;&amp; (
+          &lt;select
+            value={queryName}
+            onChange={(e) =&gt; setQueryName(e.target.value)}
+            aria-label=&quot;Web service de query&quot;
+          &gt;
+            {queryNames.map((name) =&gt; (
+              &lt;option key={name} value={name}&gt;
+                {name}
+              &lt;/option&gt;
+            ))}
+          &lt;/select&gt;
+        )}
+        &lt;select
+          value={pageSize}
+          onChange={(e) =&gt; {
+            const size = Number(e.target.value)
+            setPageSize(size)
+            if (searchedText) void runSearch(searchedText, 1, size)
+          }}
+          aria-label=&quot;Résultats par page&quot;
+        &gt;
+          {[10, 20, 50, 100].map((n) =&gt; (
+            &lt;option key={n} value={n}&gt;
+              {n} / page
+            &lt;/option&gt;
+          ))}
+        &lt;/select&gt;
+        &lt;input
+          value={text}
+          onChange={(e) =&gt; setText(e.target.value)}
+          placeholder=&quot;Rechercher…&quot;
+          aria-label=&quot;Recherche&quot;
+        /&gt;
+        &lt;button className=&quot;primary&quot; type=&quot;submit&quot; disabled={busy || !queryName}&gt;
+          {busy ? &#39;Recherche…&#39; : &#39;Rechercher&#39;}
+        &lt;/button&gt;
+      &lt;/form&gt;
+
+      {error &amp;&amp; &lt;p className=&quot;error&quot;&gt;{error}&lt;/p&gt;}
+
+      {result &amp;&amp; (
+        &lt;&gt;
+          &lt;p className=&quot;result-count&quot;&gt;
+            {result.rowCount} résultat(s) — affichage de {result.records.length}.
+          &lt;/p&gt;
+          &lt;ul className=&quot;results&quot;&gt;
+            {result.records.map((record) =&gt; (
+              &lt;li className=&quot;result&quot; key={record.id}&gt;
+                &lt;button
+                  className=&quot;result-link&quot;
+                  onClick={() =&gt; void openPreview(record)}
+                &gt;
+                  {record.title}
+                &lt;/button&gt;
+                {record.relevantExtracts &amp;&amp; (
+                  &lt;p
+                    className=&quot;extract&quot;
+                    dangerouslySetInnerHTML={{ __html: record.relevantExtracts }}
+                  /&gt;
+                )}
+                &lt;div className=&quot;result-footer&quot;&gt;
+                  {record.treepath?.[0] &amp;&amp; (
+                    &lt;span className=&quot;path&quot;&gt;{record.treepath[0]}&lt;/span&gt;
+                  )}
+                  {record.originalUrl &amp;&amp; (
+                    &lt;a
+                      className=&quot;result-external&quot;
+                      href={record.originalUrl}
+                      target=&quot;_blank&quot;
+                      rel=&quot;noreferrer&quot;
+                    &gt;
+                      Ouvrir l&#39;original ↗
+                    &lt;/a&gt;
+                  )}
+                &lt;/div&gt;
+              &lt;/li&gt;
+            ))}
+          &lt;/ul&gt;
+          {result.rowCount &gt; result.pageSize &amp;&amp; (
+            &lt;div className=&quot;pagination&quot;&gt;
+              &lt;button
+                className=&quot;ghost&quot;
+                disabled={busy || result.page &lt;= 1}
+                onClick={() =&gt; void runSearch(searchedText, result.page - 1)}
+              &gt;
+                ← Précédent
+              &lt;/button&gt;
+              &lt;span className=&quot;page-info&quot;&gt;
+                Page {result.page} /{&#39; &#39;}
+                {Math.max(1, Math.ceil(result.rowCount / result.pageSize))}
+              &lt;/span&gt;
+              &lt;button
+                className=&quot;ghost&quot;
+                disabled={
+                  busy ||
+                  result.page &gt;= Math.ceil(result.rowCount / result.pageSize)
+                }
+                onClick={() =&gt; void runSearch(searchedText, result.page + 1)}
+              &gt;
+                Suivant →
+              &lt;/button&gt;
+            &lt;/div&gt;
+          )}
+        &lt;/&gt;
+      )}
+
+      {/* Le panneau de preview est détaillé au chapitre 9 */}
+    &lt;/div&gt;
+  )
+}
+</code></pre>
+<h2 id="c7-8-4-decryptage-de-la-pagination">8.4 Décryptage de la pagination</h2>
+<ul>
+<li><strong><code>runSearch(query, page, size)</code></strong> centralise l&#39;appel. <code>onSubmit</code> appelle <code>runSearch(text, 1)</code>
+→ une nouvelle recherche repart toujours en <strong>page 1</strong>.</li>
+<li><strong>Taille de page</strong> : le <code>&lt;select&gt;</code> « N / page » met à jour <code>pageSize</code> et <strong>relance</strong> la
+recherche en page 1 avec la nouvelle taille (on passe <code>size</code> explicitement pour éviter le
+décalage dû à l&#39;asynchronisme de <code>setState</code>).</li>
+<li><strong><code>searchedText</code></strong> mémorise le terme <strong>réellement recherché</strong>, distinct de la saisie en
+cours (<code>text</code>). La pagination réinterroge sur <code>searchedText</code> → éditer le champ ne perturbe
+pas la navigation entre pages.</li>
+<li><strong>Nombre de pages</strong> = <code>ceil(result.rowCount / result.pageSize)</code>. Les boutons se désactivent
+aux bornes et pendant le chargement.</li>
+<li>Les contrôles ne s&#39;affichent que si <code>rowCount &gt; pageSize</code> (plus d&#39;une page).</li>
+</ul>
+<h2 id="c7-8-5-affichage-des-resultats">8.5 Affichage des résultats</h2>
+<ul>
+<li><strong>Titre</strong> → bouton qui ouvre la preview (chapitre 9).</li>
+<li><strong><code>relevantExtracts</code></strong> : extrait avec surlignage HTML (<code>&lt;b&gt;…&lt;/b&gt;</code>) → rendu via
+<code>dangerouslySetInnerHTML</code>.</li>
+<li><strong>Lien « Ouvrir l&#39;original ↗ »</strong> : <code>record.originalUrl</code>, en action secondaire.</li>
+</ul>
+<blockquote>
+<p>💡 <strong>Sécurité de <code>dangerouslySetInnerHTML</code></strong> : on injecte ici le surlignage renvoyé par un
+backend de confiance. Si vos sources ne le sont pas, assainissez le HTML.</p>
+</blockquote>
+<p>Chapitre suivant : la <strong>preview</strong> d&#39;un document dans un panneau latéral, avec ses métadonnées.</p>
+</section>
+<section class="chapter" id="chapter-8" data-index="8"><h1 id="c8-9-preview-d-39-un-document-sheet-iframe-metadonnees">9. Preview d&#39;un document (sheet + iframe + métadonnées)</h1>
+<p>Au clic sur un résultat, on ouvre un <strong>panneau latéral (« sheet »)</strong> qui glisse de droite à
+gauche, affiche les <strong>métadonnées</strong> du document puis sa <strong>preview HTML</strong> dans une <code>&lt;iframe&gt;</code>.</p>
+<h2 id="c8-9-1-l-39-api-fetchpreview">9.1 L&#39;API : <code>fetchPreview()</code></h2>
+<pre><code class="language-tsx">const preview = await fetchPreview(record.id, { name: queryName, text })
+// preview.documentCachedContentUrl  -&gt; URL HTML à charger dans une &lt;iframe&gt;
+// preview.record                    -&gt; Article (métadonnées, plus complet)
+</code></pre>
+<p><code>fetchPreview(id, query)</code> poste sur <code>/api/v1/preview</code> et renvoie un <code>PreviewData</code> :</p>
+<pre><code class="language-ts">type PreviewData = {
+  record: Article
+  resultId: string
+  cacheId: string
+  highlightsPerCategory: HighlightDataPerCategory
+  highlightsPerLocation: HighlightDataPerLocation[]
+  documentCachedContentUrl: string  // ← l&#39;URL de la preview HTML
+  conversions: Conversion[]
+}
+</code></pre>
+<blockquote>
+<p>💡 <strong>Pourquoi l&#39;iframe fonctionne en mode proxy</strong> : <code>documentCachedContentUrl</code> est servi en
+<strong>same-origin</strong> (<code>https://localhost:4200/...</code> via le proxy), donc le <strong>cookie de session</strong>
+part avec la requête de l&#39;iframe. La doc recommande l&#39;iframe (isole styles/scripts du
+document). Alternative : <code>fetchPreviewUrl()</code> pour récupérer le HTML et l&#39;injecter soi-même.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ Si le backend renvoie une URL <strong>absolue</strong> (vers <code>su-sba.demo.sinequa.com</code>), l&#39;iframe
+charge en <strong>cross-origin</strong> et le cookie peut ne pas passer (aperçu vide). Solution : ajouter
+une règle de proxy correspondante ou réécrire l&#39;URL en relatif.</p>
+</blockquote>
+<h2 id="c8-9-2-le-composant-sheet-src-components-sheet-tsx">9.2 Le composant Sheet — <code>src/components/sheet.tsx</code></h2>
+<pre><code class="language-tsx">import { useEffect, type ReactNode } from &#39;react&#39;
+
+type SheetProps = {
+  open: boolean
+  onClose: () =&gt; void
+  title?: ReactNode
+  children: ReactNode
+}
+
+/**
+ * Generic panel that slides in from the right. Always mounted so the close
+ * animation can play; pointer events are disabled while closed.
+ */
+export function Sheet({ open, onClose, title, children }: SheetProps) {
+  useEffect(() =&gt; {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) =&gt; {
+      if (e.key === &#39;Escape&#39;) onClose()
+    }
+    document.addEventListener(&#39;keydown&#39;, onKey)
+    return () =&gt; document.removeEventListener(&#39;keydown&#39;, onKey)
+  }, [open, onClose])
+
+  return (
+    &lt;div className={`sheet-root${open ? &#39; open&#39; : &#39;&#39;}`} aria-hidden={!open}&gt;
+      &lt;div className=&quot;sheet-overlay&quot; onClick={onClose} /&gt;
+      &lt;aside className=&quot;sheet-panel&quot; role=&quot;dialog&quot; aria-modal=&quot;true&quot;&gt;
+        &lt;header className=&quot;sheet-header&quot;&gt;
+          &lt;h2 className=&quot;sheet-title&quot;&gt;{title}&lt;/h2&gt;
+          &lt;button className=&quot;ghost&quot; onClick={onClose} aria-label=&quot;Fermer&quot;&gt;
+            ✕
+          &lt;/button&gt;
+        &lt;/header&gt;
+        &lt;div className=&quot;sheet-body&quot;&gt;{children}&lt;/div&gt;
+      &lt;/aside&gt;
+    &lt;/div&gt;
+  )
+}
+</code></pre>
+<blockquote>
+<p>💡 <strong>Toujours monté.</strong> Le sheet reste dans le DOM (fermé : <code>pointer-events:none</code> + panneau
+translaté hors écran), ce qui permet d&#39;<strong>animer aussi la fermeture</strong>. L&#39;animation se fait
+en CSS (<code>transform: translateX(100%) → 0</code>), voir chapitre Thème/styles.</p>
+</blockquote>
+<h2 id="c8-9-3-metadonnees-iframe-dans-search-tsx">9.3 Métadonnées + iframe (dans <code>search.tsx</code>)</h2>
+<p>Le panneau de métadonnées <code>DocMeta</code> est <strong>repliable</strong> (<code>&lt;details&gt;</code>/<code>&lt;summary&gt;</code>) avec une
+<strong>animation fluide</strong> (voir §9.4). Helpers de formatage et composant :</p>
+<pre><code class="language-tsx">function formatBytes(n?: number): string | undefined {
+  if (!n || n &lt;= 0) return undefined
+  const units = [&#39;o&#39;, &#39;Ko&#39;, &#39;Mo&#39;, &#39;Go&#39;, &#39;To&#39;]
+  let value = n
+  let i = 0
+  while (value &gt;= 1024 &amp;&amp; i &lt; units.length - 1) {
+    value /= 1024
+    i++
+  }
+  return `${value.toFixed(i === 0 ? 0 : 1)} ${units[i]}`
+}
+
+function formatDate(s?: string): string | undefined {
+  if (!s) return undefined
+  const d = new Date(s)
+  return Number.isNaN(d.getTime()) ? s : d.toLocaleString(&#39;fr-FR&#39;)
+}
+
+// Document metadata panel shown above the preview iframe.
+function DocMeta({ doc }: { doc: Article }) {
+  const rows: Array&lt;[string, string | undefined]&gt; = [
+    [&#39;Auteurs&#39;, doc.authors?.length ? doc.authors.join(&#39;, &#39;) : undefined],
+    [&#39;Modifié&#39;, formatDate(doc.modified)],
+    [&#39;Indexé&#39;, formatDate(doc.indexationtime)],
+    [&#39;Taille&#39;, formatBytes(doc.size)],
+    [&#39;Format&#39;, doc.docformat || doc.fileext || undefined],
+    [&#39;Type&#39;, doc.doctype],
+    [
+      &#39;Langue(s)&#39;,
+      doc.documentlanguages?.length
+        ? doc.documentlanguages.join(&#39;, &#39;)
+        : undefined,
+    ],
+    [&#39;Version&#39;, doc.version],
+    [&#39;Collection&#39;, doc.collection?.[0]],
+    [&#39;Index&#39;, doc.databasealias],
+    [&#39;Chemin&#39;, doc.treepath?.length ? doc.treepath.join(&#39; / &#39;) : undefined],
+  ]
+  const shown = rows.filter(([, v]) =&gt; v)
+  if (!shown.length) return null
+
+  return (
+    &lt;details className=&quot;meta-details&quot; open&gt;
+      &lt;summary&gt;Métadonnées&lt;/summary&gt;
+      &lt;dl className=&quot;meta&quot;&gt;
+        {shown.map(([label, value]) =&gt; (
+          &lt;Fragment key={label}&gt;
+            &lt;dt&gt;{label}&lt;/dt&gt;
+            &lt;dd&gt;{value}&lt;/dd&gt;
+          &lt;/Fragment&gt;
+        ))}
+      &lt;/dl&gt;
+    &lt;/details&gt;
+  )
+}
+</code></pre>
+<p>Et le <code>Sheet</code> rendu à la fin de <code>SearchPage</code> :</p>
+<pre><code class="language-tsx">&lt;Sheet
+  open={selected !== null}
+  onClose={() =&gt; setSelected(null)}
+  title={selected?.title}
+&gt;
+  {(preview?.record ?? selected) &amp;&amp; (
+    &lt;DocMeta doc={preview?.record ?? selected!} /&gt;
+  )}
+  {previewBusy &amp;&amp; &lt;p className=&quot;sheet-status&quot;&gt;Chargement de l&#39;aperçu…&lt;/p&gt;}
+  {previewError &amp;&amp; &lt;p className=&quot;sheet-status error&quot;&gt;{previewError}&lt;/p&gt;}
+  {preview &amp;&amp; (
+    &lt;iframe
+      className=&quot;preview-frame&quot;
+      src={preview.documentCachedContentUrl}
+      title=&quot;Aperçu du document&quot;
+    /&gt;
+  )}
+&lt;/Sheet&gt;
+</code></pre>
+<ul>
+<li><strong>Source des métadonnées</strong> : <code>preview.record</code> (le plus complet, renvoyé par <code>fetchPreview</code>)
+avec <strong>repli</strong> sur le record de recherche <code>selected</code> tant que la preview charge.</li>
+<li>N&#39;affiche que les champs <strong>présents</strong> (filtre <code>shown</code>).</li>
+</ul>
+<h2 id="c8-9-4-animer-un-lt-details-gt-natif-collapse-expand-fluide">9.4 Animer un <code>&lt;details&gt;</code> natif (collapse ⇄ expand fluide)</h2>
+<p>Un <code>&lt;details&gt;</code> natif n&#39;anime pas par défaut. L&#39;approche moderne : la pseudo-classe
+<code>::details-content</code> + <code>interpolate-size: allow-keywords</code> (qui autorise l&#39;animation jusqu&#39;à une
+hauteur <code>auto</code>).</p>
+<pre><code class="language-css">:root {
+  interpolate-size: allow-keywords; /* anime to/from `auto` */
+}
+
+.meta-details &gt; summary { cursor: pointer; list-style: none; /* … */ }
+.meta-details &gt; summary::-webkit-details-marker { display: none; }
+.meta-details &gt; summary::before { content: &#39;▸&#39;; transition: transform 0.28s ease; }
+.meta-details[open] &gt; summary::before { transform: rotate(90deg); }
+
+.meta-details::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 0.28s ease,
+    content-visibility 0.28s ease allow-discrete;
+}
+.meta-details[open]::details-content { block-size: auto; }
+</code></pre>
+<blockquote>
+<p>💡 <strong>Support &amp; dégradation</strong> : <code>interpolate-size</code> et <code>::details-content</code> sont supportés par
+Chrome/Edge récents. Sur un navigateur qui ne les gère pas, le panneau bascule
+<strong>instantanément</strong> (toujours fonctionnel) — dégradation propre. Le chevron, lui, s&#39;anime
+partout via <code>transform</code>.</p>
+</blockquote>
+<p>Chapitre suivant : le <strong>thème clair/sombre</strong>.</p>
+</section>
+<section class="chapter" id="chapter-9" data-index="9"><h1 id="c9-10-theme-clair-sombre">10. Thème clair / sombre</h1>
+<p>Le thème est piloté par des <strong>variables CSS</strong> sur <code>&lt;html data-theme&gt;</code>, avec persistance
+<code>localStorage</code>, un <strong>toggle</strong> et un <strong>script anti-flash</strong>.</p>
+<h2 id="c9-10-1-palette-par-variables-css">10.1 Palette par variables CSS</h2>
+<p>Dans <code>styles.css</code>, <code>:root</code> définit la palette <strong>sombre</strong> (défaut) et
+<code>:root[data-theme=&#39;light&#39;]</code> la surcharge :</p>
+<pre><code class="language-css">/* Default theme = dark */
+:root {
+  interpolate-size: allow-keywords;
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --inset: #0f172a;   /* fonds de champs / zones en creux */
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --error: #f87171;
+  --ok: #34d399;
+}
+
+:root[data-theme=&#39;light&#39;] {
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --inset: #f1f5f9;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --error: #dc2626;
+  --ok: #059669;
+}
+</code></pre>
+<blockquote>
+<p>⚠️ <strong>N&#39;utilisez que des <code>var(--…)</code></strong> dans tout le CSS (jamais de couleur en dur), sinon le
+switch n&#39;agira pas partout. C&#39;est pourquoi on a introduit <code>--inset</code> pour les fonds de champs
+(inputs, onglets, select) qui étaient codés en dur au départ.</p>
+</blockquote>
+<h2 id="c9-10-2-src-theme-theme-context-tsx">10.2 <code>src/theme/theme-context.tsx</code></h2>
+<pre><code class="language-tsx">import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from &#39;react&#39;
+
+export type Theme = &#39;light&#39; | &#39;dark&#39;
+
+const STORAGE_KEY = &#39;theme&#39;
+
+type ThemeContextValue = { theme: Theme; toggle: () =&gt; void }
+
+const ThemeContext = createContext&lt;ThemeContextValue | null&gt;(null)
+
+// Reads the theme already applied to &lt;html&gt; by the pre-paint script (see __root.tsx),
+// falling back to dark. Returns dark during SSR (no document) to match the server output.
+function readInitialTheme(): Theme {
+  if (typeof document === &#39;undefined&#39;) return &#39;dark&#39;
+  return document.documentElement.getAttribute(&#39;data-theme&#39;) === &#39;light&#39;
+    ? &#39;light&#39;
+    : &#39;dark&#39;
+}
+
+export function ThemeProvider({ children }: { children: ReactNode }) {
+  const [theme, setTheme] = useState&lt;Theme&gt;(readInitialTheme)
+
+  useEffect(() =&gt; {
+    document.documentElement.setAttribute(&#39;data-theme&#39;, theme)
+    try {
+      localStorage.setItem(STORAGE_KEY, theme)
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+  }, [theme])
+
+  const toggle = useCallback(
+    () =&gt; setTheme((t) =&gt; (t === &#39;dark&#39; ? &#39;light&#39; : &#39;dark&#39;)),
+    [],
+  )
+
+  return (
+    &lt;ThemeContext.Provider value={{ theme, toggle }}&gt;
+      {children}
+    &lt;/ThemeContext.Provider&gt;
+  )
+}
+
+export function useTheme() {
+  const ctx = useContext(ThemeContext)
+  if (!ctx) throw new Error(&#39;useTheme must be used within a ThemeProvider&#39;)
+  return ctx
+}
+
+export function ThemeToggle() {
+  const { theme, toggle } = useTheme()
+  // Avoid an SSR/client label mismatch: show a neutral label until mounted.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() =&gt; setMounted(true), [])
+
+  const label = !mounted
+    ? &#39;🌓 Thème&#39;
+    : theme === &#39;dark&#39;
+      ? &#39;☀️ Clair&#39;
+      : &#39;🌙 Sombre&#39;
+
+  return (
+    &lt;button
+      type=&quot;button&quot;
+      className=&quot;ghost theme-toggle&quot;
+      onClick={toggle}
+      aria-label=&quot;Basculer le thème clair/sombre&quot;
+      title=&quot;Basculer le thème clair/sombre&quot;
+    &gt;
+      {label}
+    &lt;/button&gt;
+  )
+}
+</code></pre>
+<h2 id="c9-10-3-le-script-anti-flash-rappel-root-tsx">10.3 Le script anti-flash (rappel <code>__root.tsx</code>)</h2>
+<pre><code class="language-tsx">const themeScript = `(function(){try{var t=localStorage.getItem(&#39;theme&#39;);document.documentElement.setAttribute(&#39;data-theme&#39;,t===&#39;light&#39;?&#39;light&#39;:&#39;dark&#39;)}catch(e){document.documentElement.setAttribute(&#39;data-theme&#39;,&#39;dark&#39;)}})()`
+// …injecté dans &lt;head&gt; :
+&lt;script dangerouslySetInnerHTML={{ __html: themeScript }} /&gt;
+</code></pre>
+<p>Ce script <strong>synchrone</strong> s&#39;exécute <strong>avant le premier paint</strong> : il lit le thème sauvegardé et
+pose <code>data-theme</code> sur <code>&lt;html&gt;</code>. Sans lui, un utilisateur en thème clair verrait un <strong>flash</strong>
+sombre au rechargement (le temps que React s&#39;hydrate).</p>
+<h2 id="c9-10-4-pieges-hydratation-ssr-client">10.4 Pièges : hydratation SSR/client</h2>
+<p>Deux divergences SSR↔client à neutraliser :</p>
+<blockquote>
+<p>⚠️ <strong>L&#39;attribut <code>data-theme</code> sur <code>&lt;html&gt;</code>.</strong> Le script le modifie <strong>avant</strong> l&#39;hydratation,
+alors que le HTML rendu par le serveur ne l&#39;avait pas → React signale un mismatch. On ajoute
+donc <strong><code>suppressHydrationWarning</code></strong> sur <code>&lt;html&gt;</code> (divergence intentionnelle).</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Le libellé du bouton.</strong> Au SSR, le thème vaut <code>dark</code> ; côté client, il peut valoir
+<code>light</code>. Pour éviter un mismatch de texte, <code>ThemeToggle</code> affiche un libellé <strong>neutre</strong>
+(<code>🌓 Thème</code>) jusqu&#39;au montage (<code>mounted</code>), puis le libellé réel. Au SSR et au premier rendu
+client, le texte est identique → pas de warning.</p>
+</blockquote>
+<blockquote>
+<p>💡 <code>readInitialTheme()</code> lit l&#39;attribut déjà posé par le script → l&#39;état React est d&#39;emblée
+cohérent avec l&#39;affichage (pas de second flash après hydratation).</p>
+</blockquote>
+<p>Le toggle est placé dans la barre de nav des pages protégées <strong>et</strong> sur l&#39;écran de login.
+Dernier chapitre : récapitulatif, vérifications, et l&#39;annexe CSS complète.</p>
+</section>
+<section class="chapter" id="chapter-10" data-index="10"><h1 id="c10-11-recapitulatif-verifications-amp-annexe-css">11. Récapitulatif, vérifications &amp; annexe CSS</h1>
+<h2 id="c10-11-1-commandes">11.1 Commandes</h2>
+<pre><code class="language-bash">npm install        # installe les dépendances
+npm run build      # build client + SSR ; génère src/routeTree.gen.ts
+npm run typecheck  # tsc --noEmit (le build Vite ne fait pas de typecheck)
+npm run dev        # https://localhost:4200 (accepter le certificat auto-signé)
+</code></pre>
+<h2 id="c10-11-2-strategie-de-verification">11.2 Stratégie de vérification</h2>
+<ul>
+<li><strong>Build + typecheck</strong> à chaque étape (le build Vite ne type-checke pas → <code>tsc</code> séparé).</li>
+<li><strong>Tests navigateur</strong> avec <strong>Playwright</strong> (Chromium), utiles pour ce qui ne nécessite pas de
+session réelle :<ul>
+<li>rendu de <code>/login</code>, présence des onglets ;</li>
+<li>le bouton SSO pré-rempli (<code>identity-dev</code>) → redirection vers Keycloak avec le bon
+<code>redirect_uri</code> ;</li>
+<li>la <strong>garde</strong> : <code>/</code>, <code>/profile</code>, <code>/search</code> redirigent vers <code>/login</code> sans session ;</li>
+<li>le <strong>thème</strong> : bascule, persistance, restauration après reload (sans flash) ;</li>
+<li>absence de <strong>warning d&#39;hydratation</strong> / erreur console.</li>
+</ul>
+</li>
+<li>Ce qui nécessite une <strong>session réelle</strong> (login Keycloak interactif) : contenu du profil,
+résultats de recherche, pagination, preview. On s&#39;arrête à la page Keycloak en automatisé.</li>
+</ul>
+<p>Exemple — vérifier le proxy vers Sinequa :</p>
+<pre><code class="language-powershell">Invoke-WebRequest &quot;https://localhost:4200/api/v1/challenge?action=getCsrfToken&amp;suppressErrors=true&quot; -SkipCertificateCheck
+# Attendu : {&quot;error&quot;:&quot;web token cookie does not exist&quot;,&quot;methodresult&quot;:&quot;ok&quot;}
+# =&gt; le proxy atteint bien Sinequa et getCsrfToken() renverra null proprement.
+</code></pre>
+<h2 id="c10-11-3-les-pieges-en-une-page">11.3 Les pièges, en une page</h2>
+<ul>
+<li><strong>Versions</strong> : vite 8 + <code>@vitejs/plugin-react</code> 6 (un <code>vite@^6</code> casse l&#39;install).</li>
+<li><strong>Auth = navigateur</strong> : tout appel d&#39;auth dans <code>useEffect</code>/handlers, jamais au rendu SSR.</li>
+<li><strong>Ne pas appeler <code>login()</code> au boot</strong> : risque de boucle de redirection. Utiliser
+<code>getCsrfToken()</code> (silencieux) pour détecter une session.</li>
+<li><strong>Provider OAuth</strong> : forcer <code>identity-dev</code> <strong>avant</strong> <code>appInitializerFn()</code> ; servir l&#39;app en
+<strong>HTTPS sur le port 4200</strong> pour matcher le <code>redirect_uri</code> enregistré.</li>
+<li><strong><code>routeTree.gen.ts</code></strong> : généré, non versionné.</li>
+<li><strong>Garde dans <code>useEffect</code></strong>, pas dans un <code>loader</code> (SSR n&#39;a pas le <code>sessionStorage</code>).</li>
+<li><strong>Recherche</strong> : nom de query via <code>fetchApp()</code> ; <strong>ne pas envoyer <code>pageSize</code></strong> (serveur) ;
+paginer depuis la <strong>réponse</strong>.</li>
+<li><strong>Preview</strong> : iframe same-origin (proxy) pour conserver le cookie ; attention aux URLs
+absolues.</li>
+<li><strong>Thème</strong> : que des <code>var(--…)</code> ; script anti-flash + <code>suppressHydrationWarning</code> + libellé
+neutre jusqu&#39;au montage.</li>
+</ul>
+<h2 id="c10-11-4-pour-aller-plus-loin">11.4 Pour aller plus loin</h2>
+<p>📂 Les sujets avancés sont regroupés dans <strong><a href="aller-plus-loin/index.html">Aller plus loin</a></strong>
+(documents dédiés) :</p>
+<ol>
+<li><strong><a href="aller-plus-loin/index.html">Mise en évidence avancée dans la preview (<code>highlightsPerLocation</code>)</a></strong>
+— légende par catégorie, compteur de correspondances et navigation ⟨ précédent / suivant ⟩.</li>
+<li><strong><a href="aller-plus-loin/index.html">Facettes, agrégations, tri, onglets &amp; scopes</a></strong>
+— exploiter <code>result.aggregations</code>, filtrer via <code>query.select</code>, onglets et tri.</li>
+<li><strong><a href="aller-plus-loin/index.html">Rafraîchissement du token &amp; expiration</a></strong>
+— session glissante (<code>sinequa-jwt-refresh</code>) et réaction au 401.</li>
+<li><strong><a href="aller-plus-loin/index.html">Déploiement</a></strong> — reverse proxy same-origin vs
+<code>backendUrl</code> + CORS, et <code>redirect_uri</code> OAuth en production.</li>
+</ol>
+<h2 id="c10-11-5-annexe-src-styles-css-complet">11.5 Annexe — <code>src/styles.css</code> complet</h2>
+<pre><code class="language-css">/* Default theme = dark */
+:root {
+  /* enables animating to/from `auto` sizes (e.g. &lt;details&gt; open/close) */
+  interpolate-size: allow-keywords;
+  --bg: #0f172a;
+  --panel: #1e293b;
+  --inset: #0f172a;
+  --border: #334155;
+  --text: #e2e8f0;
+  --muted: #94a3b8;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --error: #f87171;
+  --ok: #34d399;
+}
+
+:root[data-theme=&#39;light&#39;] {
+  --bg: #f8fafc;
+  --panel: #ffffff;
+  --inset: #f1f5f9;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #4f46e5;
+  --accent-hover: #4338ca;
+  --error: #dc2626;
+  --ok: #059669;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, &#39;Segoe UI&#39;, Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.center {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.card {
+  width: 100%;
+  max-width: 420px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 28px;
+}
+
+.card h1 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+}
+
+.subtitle {
+  margin: 0 0 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+  background: var(--inset);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.tabs button {
+  flex: 1;
+  padding: 8px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.tabs button.active {
+  background: var(--accent);
+  color: white;
+}
+
+label {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+input {
+  width: 100%;
+  padding: 10px 12px;
+  margin-bottom: 14px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button.primary {
+  width: 100%;
+  padding: 11px;
+  border: none;
+  border-radius: 8px;
+  background: var(--accent);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.provider-btn {
+  width: 100%;
+  padding: 11px;
+  margin-bottom: 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--inset);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.provider-btn:hover {
+  border-color: var(--accent);
+}
+
+.error {
+  color: var(--error);
+  font-size: 0.85rem;
+  margin: 0 0 14px;
+}
+
+.hint {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 12px 0 0;
+}
+
+.badge {
+  display: inline-block;
+  background: rgba(52, 211, 153, 0.15);
+  color: var(--ok);
+  border: 1px solid var(--ok);
+  border-radius: 999px;
+  padding: 4px 12px;
+  font-size: 0.8rem;
+  margin-bottom: 16px;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 16px;
+  font-size: 0.9rem;
+  margin-bottom: 20px;
+}
+
+.kv dt {
+  color: var(--muted);
+}
+
+.kv dd {
+  margin: 0;
+  word-break: break-all;
+}
+
+/* ----- Protected layout ----- */
+.layout {
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 24px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav-links {
+  display: flex;
+  gap: 4px;
+}
+
+.nav-link {
+  color: var(--muted);
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.nav-link:hover {
+  background: var(--inset);
+  color: var(--text);
+}
+
+.nav-link.active {
+  background: var(--accent);
+  color: #fff;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.nav-user {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+button.ghost:hover {
+  border-color: var(--accent);
+}
+
+.content {
+  padding: 32px 24px;
+}
+
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.page h1 {
+  margin: 8px 0 4px;
+}
+
+/* ----- Home cards ----- */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.link-card {
+  display: block;
+  padding: 20px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.link-card:hover {
+  border-color: var(--accent);
+}
+
+.link-card h2 {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.link-card p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+/* ----- Profile raw dump ----- */
+.raw summary {
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.raw pre {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 16px;
+  overflow: auto;
+  font-size: 0.8rem;
+}
+
+/* ----- Search ----- */
+.search-form {
+  display: flex;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.search-form input {
+  flex: 1;
+  margin: 0;
+}
+
+.search-form select {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--inset);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.search-form button {
+  width: auto;
+  white-space: nowrap;
+}
+
+.result-count {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.results {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.result {
+  padding: 16px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.result a,
+.result-title {
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.result a:hover {
+  text-decoration: underline;
+}
+
+.extract {
+  margin: 8px 0 4px;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.extract b {
+  color: var(--ok);
+}
+
+.path {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+/* ----- Theme toggle ----- */
+.theme-toggle {
+  font-size: 0.85rem;
+}
+
+/* Toggle pinned top-right on the (centered) login screen */
+.login-topbar {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+}
+
+/* ----- Sheet (slides in from the right) ----- */
+.sheet-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.sheet-root.open {
+  pointer-events: auto;
+}
+
+.sheet-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+
+.sheet-root.open .sheet-overlay {
+  opacity: 1;
+}
+
+.sheet-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: 100%;
+  width: min(720px, 92vw);
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.25);
+  transform: translateX(100%);
+  transition: transform 0.28s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheet-root.open .sheet-panel {
+  transform: translateX(0);
+}
+
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sheet-title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Collapsible metadata block (native &lt;details&gt; with smooth open/close) */
+.meta-details {
+  border-bottom: 1px solid var(--border);
+}
+
+.meta-details &gt; summary {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.meta-details &gt; summary::-webkit-details-marker {
+  display: none;
+}
+
+.meta-details &gt; summary::before {
+  content: &#39;▸&#39;;
+  display: inline-block;
+  transition: transform 0.28s ease;
+}
+
+.meta-details[open] &gt; summary::before {
+  transform: rotate(90deg);
+}
+
+.meta-details::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 0.28s ease,
+    content-visibility 0.28s ease allow-discrete;
+}
+
+.meta-details[open]::details-content {
+  block-size: auto;
+}
+
+.meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0 18px 16px;
+  font-size: 0.85rem;
+  max-height: 38vh;
+  overflow: auto;
+}
+
+.meta dt {
+  color: var(--muted);
+}
+
+.meta dd {
+  margin: 0;
+  word-break: break-word;
+}
+
+.preview-frame {
+  flex: 1;
+  width: 100%;
+  border: 0;
+  background: #fff;
+}
+
+.sheet-status {
+  padding: 24px;
+  color: var(--muted);
+}
+
+/* Clickable result title */
+button.result-link {
+  display: block;
+  text-align: left;
+  width: auto;
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+button.result-link:hover {
+  text-decoration: underline;
+}
+
+.result-footer {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
+}
+
+.result-external {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.page-info {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+</code></pre>
+<p>Vous disposez maintenant d&#39;une application Sinequa complète : authentification multi-méthode,
+routes protégées, recherche paginée, preview de documents et thème clair/sombre. 🎉</p>
+</section>
+    <nav class="pager">
+      <button id="prevBtn"><span class="lbl">← Précédent</span><span class="ttl"></span></button>
+      <button id="nextBtn" class="next"><span class="lbl">Suivant →</span><span class="ttl"></span></button>
+    </nav>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>
+(function(){
+  var root=document.documentElement;
+  var chapters=[].slice.call(document.querySelectorAll('.chapter'));
+  var realCount=document.querySelectorAll('.chapter:not(.home)').length;
+  var chapterLinks=[].slice.call(document.querySelectorAll('.nav-chapter'));
+  var groups=[].slice.call(document.querySelectorAll('.nav-group'));
+  var current=0;
+
+  function setActive(idx){
+    chapterLinks.forEach(function(a){
+      var on=Number(a.getAttribute('data-chapter'))===idx;
+      a.classList.toggle('active',on);
+    });
+    groups.forEach(function(g){
+      var a=g.querySelector('.nav-chapter');
+      g.classList.toggle('active', a && Number(a.getAttribute('data-chapter'))===idx);
+    });
+    var hash=location.hash.replace('#','');
+    [].slice.call(document.querySelectorAll('.nav-sub')).forEach(function(a){
+      a.classList.toggle('current', a.getAttribute('href')==='#'+hash);
+    });
+  }
+
+  function updatePager(idx){
+    var prev=document.getElementById('prevBtn'), next=document.getElementById('nextBtn');
+    prev.disabled = idx<=-1; next.disabled = idx>=realCount-1;
+    prev.dataset.idx = idx-1; next.dataset.idx = idx+1;
+    prev.querySelector('.ttl').textContent = idx>-1 ? chapterTitle(idx-1) : '';
+    next.querySelector('.ttl').textContent = idx<realCount-1 ? chapterTitle(idx+1) : '';
+  }
+
+  function chapterTitle(idx){
+    if(idx===-1) return 'Accueil';
+    var a=document.querySelector('.nav-chapter[data-chapter="'+idx+'"]');
+    return a? a.textContent : '';
+  }
+
+  function show(idx, targetId){
+    current=idx;
+    chapters.forEach(function(c){
+      c.style.display = (Number(c.getAttribute('data-index'))===idx)?'block':'none';
+    });
+    setActive(idx); updatePager(idx);
+    document.body.classList.remove('nav-open');
+    var main=document.querySelector('.main');
+    if(targetId){
+      var el=document.getElementById(targetId);
+      if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+    }
+    if(main){ main.scrollTo({top:0,behavior:'smooth'}); }
+  }
+
+  function chapterOf(id){
+    var el=document.getElementById(id);
+    if(!el) return null;
+    var sec=el.closest('.chapter');
+    return sec? Number(sec.getAttribute('data-index')) : null;
+  }
+
+  function route(){
+    var hash=location.hash.replace('#','');
+    if(!hash||hash==='home'){ show(-1,null); return; }
+    var m=hash.match(/^chapter-(\d+)$/);
+    if(m){ show(Number(m[1]),null); return; }
+    var idx=chapterOf(hash);
+    show(idx===null?-1:idx, idx===null?null:hash);
+  }
+
+  window.addEventListener('hashchange', route);
+
+  document.getElementById('prevBtn').addEventListener('click', function(){
+    var i=Number(this.dataset.idx); if(i>=-1){ location.hash = i===-1?'#home':'#chapter-'+i; }
+  });
+  document.getElementById('nextBtn').addEventListener('click', function(){
+    var i=Number(this.dataset.idx); if(i<realCount){ location.hash = i===-1?'#home':'#chapter-'+i; }
+  });
+  document.getElementById('menuBtn').addEventListener('click', function(){
+    document.body.classList.toggle('nav-open');
+  });
+
+  // Theme toggle
+  var themeBtn=document.getElementById('themeBtn');
+  function syncThemeLabel(){ themeBtn.textContent = root.getAttribute('data-theme')==='light'?'🌙 Sombre':'☀️ Clair'; }
+  syncThemeLabel();
+  themeBtn.addEventListener('click', function(){
+    var t=root.getAttribute('data-theme')==='light'?'dark':'light';
+    root.setAttribute('data-theme',t);
+    try{ localStorage.setItem('tuto-theme',t); }catch(e){}
+    syncThemeLabel();
+  });
+
+  // Copy buttons
+  [].slice.call(document.querySelectorAll('pre')).forEach(function(pre){
+    var btn=document.createElement('button');
+    btn.className='copy-btn'; btn.type='button'; btn.textContent='Copier';
+    btn.addEventListener('click', function(){
+      var code=pre.querySelector('code');
+      var text=code? code.innerText : pre.innerText;
+      navigator.clipboard.writeText(text).then(function(){
+        btn.textContent='Copié !'; setTimeout(function(){btn.textContent='Copier';},1500);
+      }).catch(function(){ btn.textContent='Échec'; });
+    });
+    pre.appendChild(btn);
+  });
+
+  // Sidebar search / filter (chapters + sub-sections), with match highlighting.
+  var search=document.getElementById('navSearch');
+  var clearBtn=document.getElementById('navClear');
+  var navEl=document.querySelector('.nav');
+  var emptyEl=document.querySelector('.nav-empty');
+  var homeLink=document.querySelector('.nav-home');
+  var searchWrap=document.querySelector('.nav-search-wrap');
+  function orig(el){ return el.dataset.orig!==undefined?el.dataset.orig:el.textContent; }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function hl(el,q){
+    if(el.dataset.orig===undefined) el.dataset.orig=el.textContent;
+    var t=el.dataset.orig;
+    if(!q){ el.textContent=t; return; }
+    var i=t.toLowerCase().indexOf(q);
+    if(i<0){ el.textContent=t; return; }
+    el.innerHTML=esc(t.slice(0,i))+'<mark>'+esc(t.slice(i,i+q.length))+'</mark>'+esc(t.slice(i+q.length));
+  }
+  function filter(){
+    var q=search.value.trim().toLowerCase();
+    var on=q.length>0;
+    navEl.classList.toggle('searching',on);
+    searchWrap.classList.toggle('has-value', search.value.length>0);
+    var visible=0;
+    groups.forEach(function(g){
+      var chap=g.querySelector('.nav-chapter');
+      var chapMatch=orig(chap).toLowerCase().indexOf(q)>=0;
+      var subs=[].slice.call(g.querySelectorAll('.nav-sub'));
+      var anySub=false;
+      subs.forEach(function(s){
+        var m=!on||chapMatch||orig(s).toLowerCase().indexOf(q)>=0;
+        s.style.display=m?'':'none';
+        hl(s,(on&&!chapMatch&&m)?q:'');
+        if(m&&on) anySub=true;
+      });
+      var show=!on||chapMatch||anySub;
+      g.style.display=show?'':'none';
+      hl(chap,(on&&chapMatch)?q:'');
+      if(show) visible++;
+    });
+    if(homeLink){
+      var hs=!on||'accueil'.indexOf(q)>=0;
+      homeLink.style.display=hs?'':'none';
+      if(hs&&on) visible++;
+    }
+    emptyEl.classList.toggle('show', on&&visible===0);
+  }
+  if(search){
+    search.addEventListener('input', filter);
+    search.addEventListener('keydown', function(e){ if(e.key==='Escape'){ search.value=''; filter(); } });
+    clearBtn.addEventListener('click', function(){ search.value=''; filter(); search.focus(); });
+  }
+
+  // Syntax highlighting (map tsx/jsx, then highlight)
+  if(window.hljs){
+    [].slice.call(document.querySelectorAll('code[class*="language-"]')).forEach(function(code){
+      code.className=code.className.replace('language-tsx','language-typescript').replace('language-jsx','language-javascript');
+    });
+    try{ window.hljs.highlightAll(); }catch(e){}
+  }
+
+  route();
+})();
+</script>
+</body>
+</html>

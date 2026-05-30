@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aller plus loin — App Sinequa</title>
+<script>(function(){try{var t=localStorage.getItem('tuto-theme');if(t){document.documentElement.setAttribute('data-theme',t);}}catch(e){}})();</script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/styles/atom-one-dark.min.css">
+<style>
+:root{
+  --bg:#0b1020;--panel:#121a2e;--panel-2:#0e1626;--border:#26324a;--text:#e6ebf5;
+  --muted:#94a3b8;--accent:#6366f1;--accent-2:#818cf8;--code-bg:#0d1117;
+}
+:root[data-theme='light']{
+  --bg:#f6f7fb;--panel:#ffffff;--panel-2:#f1f3f9;--border:#e2e8f0;--text:#0f172a;
+  --muted:#64748b;--accent:#4f46e5;--accent-2:#4338ca;--code-bg:#0d1117;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh}
+a{color:var(--accent-2)}
+/* Sidebar */
+.sidebar{width:300px;flex:0 0 300px;background:var(--panel-2);border-right:1px solid var(--border);height:100vh;position:sticky;top:0;overflow-y:auto;overflow-x:hidden;padding:18px 14px}
+/* Subtle, theme-integrated scrollbars */
+.sidebar,.main,pre{scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+.sidebar::-webkit-scrollbar,.main::-webkit-scrollbar{width:10px;height:10px}
+.sidebar::-webkit-scrollbar-thumb,.main::-webkit-scrollbar-thumb{background:var(--border);border-radius:999px;border:3px solid transparent;background-clip:padding-box}
+.sidebar::-webkit-scrollbar-thumb:hover,.main::-webkit-scrollbar-thumb:hover{background:var(--muted);background-clip:padding-box;border:3px solid transparent}
+.sidebar::-webkit-scrollbar-track,.main::-webkit-scrollbar-track{background:transparent}
+pre::-webkit-scrollbar{height:10px;width:10px}
+pre::-webkit-scrollbar-thumb{background:#30363d;border-radius:999px;border:3px solid transparent;background-clip:padding-box}
+pre::-webkit-scrollbar-thumb:hover{background:#444c56;background-clip:padding-box}
+pre::-webkit-scrollbar-track{background:transparent}
+.brand{font-weight:700;font-size:1.05rem;padding:6px 10px 14px;display:flex;align-items:center;gap:8px}
+.nav-back{display:block;text-decoration:none;color:var(--muted);font-size:.82rem;padding:6px 10px;margin-bottom:8px;border:1px solid var(--border);border-radius:8px}
+.nav-back:hover{color:var(--text);border-color:var(--accent)}
+/* Search box */
+.nav-search-wrap{position:relative;margin:0 6px 12px}
+.nav-search{width:100%;padding:8px 30px 8px 32px;background:var(--panel);border:1px solid var(--border);border-radius:9px;color:var(--text);font-size:.85rem}
+.nav-search:focus{outline:none;border-color:var(--accent)}
+.nav-search-wrap::before{content:'🔎';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:.8rem;opacity:.7;pointer-events:none}
+.nav-clear{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--muted);cursor:pointer;font-size:1rem;line-height:1;padding:2px 6px;display:none}
+.nav-search-wrap.has-value .nav-clear{display:block}
+.nav-empty{display:none;color:var(--muted);font-size:.82rem;padding:8px 12px}
+.nav.searching .nav-empty.show{display:block}
+.nav.searching .nav-subs{display:block}
+mark{background:color-mix(in srgb,var(--accent) 40%,transparent);color:inherit;border-radius:3px;padding:0 1px}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.nav-group{margin-bottom:4px}
+.nav-chapter{display:block;text-decoration:none;color:var(--text);padding:8px 10px;border-radius:8px;font-weight:600;font-size:.9rem}
+.nav-chapter:hover{background:var(--panel)}
+.nav-chapter.active{background:var(--accent);color:#fff}
+.nav-subs{margin:2px 0 6px 8px;border-left:1px solid var(--border);padding-left:6px;display:none}
+.nav-group.active .nav-subs{display:block}
+.nav-sub{display:block;text-decoration:none;color:var(--muted);padding:5px 10px;border-radius:6px;font-size:.82rem}
+.nav-sub:hover{color:var(--text);background:var(--panel)}
+.nav-sub.current{color:var(--accent-2);font-weight:600}
+/* Main */
+.main{flex:1;min-width:0;display:flex;flex-direction:column;height:100vh;overflow:auto}
+.topbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 28px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--border)}
+.topbar .menu{display:none}
+.iconbtn{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:.9rem;text-decoration:none;display:inline-block}
+.iconbtn:hover{border-color:var(--accent)}
+.content{padding:24px 36px 64px;max-width:920px;width:100%;margin:0 auto}
+.chapter{display:none;animation:fade .25s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+/* Home / table of contents */
+.home-hero{padding:8px 0 6px}
+.home-hero .badge{display:inline-block;background:color-mix(in srgb,var(--accent) 18%,transparent);color:var(--accent-2);border:1px solid var(--accent);border-radius:999px;padding:3px 12px;font-size:.74rem;font-weight:600}
+.home-hero h1{border:none;margin:.4em 0 .2em;font-size:2rem}
+.home-sub{color:var(--muted);font-size:1rem;max-width:680px}
+.toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-top:24px}
+.toc-card{display:flex;gap:14px;align-items:flex-start;text-decoration:none;color:var(--text);background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:18px;transition:border-color .15s,transform .15s,box-shadow .15s}
+.toc-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.toc-num{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--accent);color:#fff;font-weight:700}
+.toc-body{display:flex;flex-direction:column;gap:4px;min-width:0}
+.toc-title{font-weight:600;font-size:.98rem}
+.toc-blurb{color:var(--muted);font-size:.83rem;line-height:1.45}
+.nav-home{margin-bottom:8px}
+h1,h2,h3{line-height:1.25;scroll-margin-top:70px}
+h1{font-size:1.7rem;margin:.2em 0 .6em;border-bottom:1px solid var(--border);padding-bottom:.3em}
+h2{font-size:1.3rem;margin:1.6em 0 .5em}
+h3{font-size:1.08rem;margin:1.3em 0 .4em}
+p,li{line-height:1.65}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.86em;background:color-mix(in srgb,var(--accent) 16%,transparent);padding:.1em .35em;border-radius:5px}
+pre{position:relative;background:var(--code-bg);border:1px solid var(--border);border-radius:12px;padding:16px 16px;overflow:auto}
+pre code{background:none;padding:0;font-size:.84rem;color:#e6edf3}
+.copy-btn{position:absolute;top:8px;right:8px;background:#1f2937;color:#e5e7eb;border:1px solid #374151;border-radius:7px;padding:4px 10px;font-size:.74rem;cursor:pointer;opacity:.55;transition:opacity .15s}
+pre:hover .copy-btn,.copy-btn:focus-visible{opacity:1}
+.copy-btn:hover{background:#374151}
+blockquote{margin:1em 0;padding:12px 16px;border-left:4px solid var(--accent);background:var(--panel);border-radius:0 10px 10px 0;color:var(--text)}
+blockquote p{margin:.3em 0}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:.9rem}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left}
+th{background:var(--panel)}
+tr:nth-child(even) td{background:color-mix(in srgb,var(--panel) 50%,transparent)}
+hr{border:none;border-top:1px solid var(--border);margin:2em 0}
+.pager{display:flex;justify-content:space-between;gap:12px;margin-top:40px;border-top:1px solid var(--border);padding-top:20px}
+.pager button{background:var(--panel);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:12px 16px;cursor:pointer;font-size:.9rem;max-width:48%;text-align:left}
+.pager button:hover:not(:disabled){border-color:var(--accent)}
+.pager button:disabled{opacity:.4;cursor:not-allowed}
+.pager .lbl{display:block;font-size:.72rem;color:var(--muted)}
+.pager .ttl{display:block;font-weight:600}
+.pager .next{text-align:right}
+@media (max-width:860px){
+  .sidebar{position:fixed;left:0;top:0;z-index:20;transform:translateX(-100%);transition:transform .25s}
+  body.nav-open .sidebar{transform:translateX(0)}
+  .topbar .menu{display:inline-block}
+}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="brand"><span class="dot"></span> Aller plus loin</div>
+  <a class="nav-back" href="../index.html">← Retour au tutoriel</a>
+  <div class="nav-search-wrap">
+    <input id="navSearch" class="nav-search" type="search" placeholder="Rechercher…" aria-label="Rechercher" autocomplete="off">
+    <button id="navClear" class="nav-clear" type="button" aria-label="Effacer">×</button>
+  </div>
+  <nav class="nav"><a class="nav-chapter nav-home" data-chapter="-1" href="#home">🏠 Accueil</a><div class="nav-group"><a class="nav-chapter" data-chapter="0" href="#c0-1-mise-en-evidence-avancee-dans-la-preview-highlightsperlocation">1. Mise en évidence avancée dans la preview (highlightsPerLocation)</a><div class="nav-subs"><a class="nav-sub" data-chapter="0" href="#c0-1-1-le-modele-de-donnees">1.1 Le modèle de données</a><a class="nav-sub" data-chapter="0" href="#c0-1-2-deux-usages-deux-niveaux-d-39-effort">1.2 Deux usages, deux niveaux d&#39;effort</a><a class="nav-sub" data-chapter="0" href="#c0-1-3-legende-amp-compteur-sans-toucher-a-l-39-iframe">1.3 Légende &amp; compteur (sans toucher à l&#39;iframe)</a><a class="nav-sub" data-chapter="0" href="#c0-1-4-acceder-au-contenu-de-l-39-iframe-cle-meme-origine">1.4 Accéder au contenu de l&#39;iframe (clé : même origine)</a><a class="nav-sub" data-chapter="0" href="#c0-1-5-le-bon-selecteur-la-classe-la-categorie">1.5 Le bon sélecteur : la classe = la catégorie</a><a class="nav-sub" data-chapter="0" href="#c0-1-6-activer-desactiver-amp-naviguer-par-categorie">1.6 Activer/désactiver &amp; naviguer par catégorie</a><a class="nav-sub" data-chapter="0" href="#c0-1-7-le-piege-des-libelles-ce-sont-des-cles-i18n">1.7 Le piège des libellés : ce sont des clés i18n</a><a class="nav-sub" data-chapter="0" href="#c0-1-8-pieges-amp-degradation">1.8 Pièges &amp; dégradation</a><a class="nav-sub" data-chapter="0" href="#c0-1-9-implementation-de-reference">1.9 Implémentation de référence</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="1" href="#c1-2-facettes-agregations-tri-onglets-amp-scopes">2. Facettes, agrégations, tri, onglets &amp; scopes</a><div class="nav-subs"><a class="nav-sub" data-chapter="1" href="#c1-2-1-ce-que-renvoie-result">2.1 Ce que renvoie Result</a><a class="nav-sub" data-chapter="1" href="#c1-2-2-afficher-les-facettes-agregations">2.2 Afficher les facettes (agrégations)</a><a class="nav-sub" data-chapter="1" href="#c1-2-3-filtrer-via-les-facettes-query-filters">2.3 Filtrer via les facettes : query.filters</a><a class="nav-sub" data-chapter="1" href="#c1-2-4-voir-plus-sur-une-facette-action-aggregate">2.4 « Voir plus » sur une facette : action aggregate</a><a class="nav-sub" data-chapter="1" href="#c1-2-5-onglets-tabs">2.5 Onglets (tabs)</a><a class="nav-sub" data-chapter="1" href="#c1-2-6-tri-amp-perimetre-scope">2.6 Tri &amp; périmètre (scope)</a><a class="nav-sub" data-chapter="1" href="#c1-2-7-facettes-de-type-arbre-affichage-hierarchique">2.7 Facettes de type arbre (affichage hiérarchique)</a><a class="nav-sub" data-chapter="1" href="#c1-2-8-implementation-de-reference">2.8 Implémentation de référence</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="2" href="#c2-3-rafraichissement-du-token-amp-gestion-de-l-39-expiration">3. Rafraîchissement du token &amp; gestion de l&#39;expiration</a><div class="nav-subs"><a class="nav-sub" data-chapter="2" href="#c2-3-1-rappel-isauthenticated-ne-teste-que-la-presence">3.1 Rappel : isAuthenticated() ne teste que la présence</a><a class="nav-sub" data-chapter="2" href="#c2-3-2-le-rafraichissement-est-automatique-header-sinequa-jwt-refresh">3.2 Le rafraîchissement est automatique (header sinequa-jwt-refresh)</a><a class="nav-sub" data-chapter="2" href="#c2-3-3-ce-qui-se-passe-en-cas-d-39-expiration-401">3.3 Ce qui se passe en cas d&#39;expiration (401)</a><a class="nav-sub" data-chapter="2" href="#c2-3-4-patron-retry-silencieux-puis-redirection">3.4 Patron : retry silencieux puis redirection</a><a class="nav-sub" data-chapter="2" href="#c2-3-5-outils-de-date-fournis-par-la-lib">3.5 Outils de date fournis par la lib</a><a class="nav-sub" data-chapter="2" href="#c2-3-6-a-retenir">3.6 À retenir</a><a class="nav-sub" data-chapter="2" href="#c2-3-7-implementation-de-reference">3.7 Implémentation de référence</a></div></div><div class="nav-group"><a class="nav-chapter" data-chapter="3" href="#c3-4-deploiement-au-dela-du-proxy-de-dev">4. Déploiement (au-delà du proxy de dev)</a><div class="nav-subs"><a class="nav-sub" data-chapter="3" href="#c3-4-1-rappel-comment-la-lib-construit-ses-urls">4.1 Rappel : comment la lib construit ses URLs</a><a class="nav-sub" data-chapter="3" href="#c3-4-2-option-a-reverse-proxy-same-origin-recommande">4.2 Option A — Reverse proxy same-origin (recommandé)</a><a class="nav-sub" data-chapter="3" href="#c3-4-3-option-b-backendurl-direct-cors">4.3 Option B — backendUrl direct + CORS</a><a class="nav-sub" data-chapter="3" href="#c3-4-4-oauth-saml-en-production-le-redirect-uri">4.4 OAuth/SAML en production : le redirect_uri</a><a class="nav-sub" data-chapter="3" href="#c3-4-5-ssr-tanstack-start-amp-specificites">4.5 SSR TanStack Start &amp; spécificités</a><a class="nav-sub" data-chapter="3" href="#c3-4-6-checklist-de-mise-en-production">4.6 Checklist de mise en production</a></div></div><div class="nav-empty">Aucun résultat.</div></nav>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <button class="iconbtn menu" id="menuBtn">☰ Sommaire</button>
+    <div style="flex:1"></div>
+    <button class="iconbtn" id="themeBtn">☀️ Clair</button>
+  </div>
+  <div class="content">
+    <section class="chapter home" id="home" data-index="-1"><div class="home-hero"><span class="badge">Aller plus loin</span><h1>Aller plus loin</h1><p class="home-sub">Sujets avancés autour de l'application Sinequa : approfondissements et techniques au-delà du tutoriel principal.</p></div><div class="toc-grid"><a class="toc-card" href="#c0-1-mise-en-evidence-avancee-dans-la-preview-highlightsperlocation"><span class="toc-num">1</span><span class="toc-body"><span class="toc-title">Mise en évidence avancée dans la preview (highlightsPerLocation)</span><span class="toc-blurb">Au chapitre « Preview » du tutoriel principal, on affichait documentCachedContentUrl dans
+une &lt;iframe&gt;. Mais fetchPreview() renvoie bien plus :…</span></span></a><a class="toc-card" href="#c1-2-facettes-agregations-tri-onglets-amp-scopes"><span class="toc-num">2</span><span class="toc-body"><span class="toc-title">Facettes, agrégations, tri, onglets &amp; scopes</span><span class="toc-blurb">La réponse de fetchQuery() ne contient pas que des documents : elle embarque aussi les
+agrégations (facettes), les onglets et l&#39;info de tri. Ce…</span></span></a><a class="toc-card" href="#c2-3-rafraichissement-du-token-amp-gestion-de-l-39-expiration"><span class="toc-num">3</span><span class="toc-body"><span class="toc-title">Rafraîchissement du token &amp; gestion de l&#39;expiration</span><span class="toc-blurb">L&#39;authentification Sinequa repose sur un token CSRF (stocké dans le sessionStorage) et
+un cookie de session. Ce chapitre explique comment la…</span></span></a><a class="toc-card" href="#c3-4-deploiement-au-dela-du-proxy-de-dev"><span class="toc-num">4</span><span class="toc-body"><span class="toc-title">Déploiement (au-delà du proxy de dev)</span><span class="toc-blurb">En développement, tout passe par le proxy Vite (vite.config.ts). Mais ce proxy
+n&#39;existe qu&#39;en vite dev : en production, il faut reproduire la…</span></span></a></div></section>
+<section class="chapter" id="chapter-0" data-index="0"><h1 id="c0-1-mise-en-evidence-avancee-dans-la-preview-highlightsperlocation">1. Mise en évidence avancée dans la preview (<code>highlightsPerLocation</code>)</h1>
+<p>Au chapitre « Preview » du tutoriel principal, on affichait <code>documentCachedContentUrl</code> dans
+une <code>&lt;iframe&gt;</code>. Mais <code>fetchPreview()</code> renvoie bien plus : des <strong>données de surlignage
+structurées</strong> qui permettent de construire une <strong>légende par catégorie</strong>, un <strong>compteur de
+correspondances</strong> et une <strong>navigation précédent/suivant</strong> entre les occurrences.</p>
+<h2 id="c0-1-1-le-modele-de-donnees">1.1 Le modèle de données</h2>
+<p><code>fetchPreview(id, query)</code> renvoie un <code>PreviewData</code> :</p>
+<pre><code class="language-ts">type PreviewData = {
+  record: Article
+  resultId: string
+  cacheId: string
+  highlightsPerCategory: HighlightDataPerCategory   // { [category]: CategoryHighlightData }
+  highlightsPerLocation: HighlightDataPerLocation[]  // occurrences, ordonnées dans le doc
+  documentCachedContentUrl: string
+  conversions: Conversion[]
+}
+</code></pre>
+<p>Deux vues complémentaires des <strong>mêmes</strong> surlignages :</p>
+<p><strong>a) Par catégorie</strong> — pour une légende / des filtres.</p>
+<pre><code class="language-ts">type HighlightDataPerCategory = Record&lt;string, CategoryHighlightData&gt;
+
+type CategoryHighlightData = {
+  categoryDisplayLabel: string         // ex. &quot;Société&quot;
+  categoryDisplayLabelPlural: string   // ex. &quot;Sociétés&quot;
+  categoryFilterAllLabel: string
+  categoryFilterNoneLabel: string
+  values: HighlightValue[]
+}
+
+type HighlightValue = {
+  value: string          // valeur normalisée (clé)
+  displayValue: string   // libellé affichable
+  locations: Location[]  // toutes les positions de cette valeur
+}
+
+type Location = { start: number; enclosingLength: number }
+</code></pre>
+<p><strong>b) Par position</strong> — pour la navigation occurrence par occurrence.</p>
+<pre><code class="language-ts">type HighlightDataPerLocation = {
+  start: number                              // position dans le texte du document
+  length: number
+  values: string[]                           // valeurs présentes à cette position
+  displayValue: string
+  positionInCategories: Record&lt;string, number&gt; // index de cette occurrence au sein de chaque catégorie
+}
+</code></pre>
+<blockquote>
+<p>💡 <strong><code>highlightsPerLocation</code> est déjà ordonné</strong> par position dans le document : c&#39;est la
+liste idéale pour un « ⟨ précédent / suivant ⟩ » et pour un compteur « 3 / 47 ».
+<code>positionInCategories</code> permet en plus un compteur <strong>par catégorie</strong> (« Société 2/8 »).</p>
+</blockquote>
+<h2 id="c0-1-2-deux-usages-deux-niveaux-d-39-effort">1.2 Deux usages, deux niveaux d&#39;effort</h2>
+<table>
+<thead>
+<tr>
+<th>Usage</th>
+<th>Source</th>
+<th>Touche à l&#39;iframe ?</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Légende + compteurs</strong> (catégories, totaux)</td>
+<td><code>highlightsPerCategory</code> / <code>highlightsPerLocation</code></td>
+<td>Non — pur React</td>
+</tr>
+<tr>
+<td><strong>Coloration &amp; navigation dans le document</strong></td>
+<td>+ le HTML de la preview</td>
+<td>Oui — via l&#39;iframe</td>
+</tr>
+</tbody></table>
+<p>Le premier est <strong>robuste et sans dépendance</strong> au balisage. Le second nécessite d&#39;accéder au
+contenu de l&#39;iframe (voir §1.4).</p>
+<h2 id="c0-1-3-legende-amp-compteur-sans-toucher-a-l-39-iframe">1.3 Légende &amp; compteur (sans toucher à l&#39;iframe)</h2>
+<pre><code class="language-tsx">function HighlightLegend({ preview }: { preview: PreviewData }) {
+  const total = preview.highlightsPerLocation.length
+  const categories = Object.entries(preview.highlightsPerCategory)
+
+  if (!total) return null
+
+  return (
+    &lt;div className=&quot;hl-legend&quot;&gt;
+      &lt;span className=&quot;hl-total&quot;&gt;{total} correspondance(s)&lt;/span&gt;
+      &lt;ul&gt;
+        {categories.map(([key, cat]) =&gt; {
+          // nombre d&#39;occurrences de la catégorie = somme des locations de ses valeurs
+          const count = cat.values.reduce((n, v) =&gt; n + v.locations.length, 0)
+          return (
+            &lt;li key={key}&gt;
+              &lt;span className=&quot;hl-swatch&quot; data-cat={key} /&gt;
+              {cat.categoryDisplayLabelPlural || cat.categoryDisplayLabel} : {count}
+            &lt;/li&gt;
+          )
+        })}
+      &lt;/ul&gt;
+    &lt;/div&gt;
+  )
+}
+</code></pre>
+<p>On peut l&#39;insérer dans le <code>Sheet</code>, juste sous le panneau de métadonnées.</p>
+<h2 id="c0-1-4-acceder-au-contenu-de-l-39-iframe-cle-meme-origine">1.4 Accéder au contenu de l&#39;iframe (clé : même origine)</h2>
+<p>Comme la preview passe par le <strong>proxy</strong> (<code>https://localhost:4200/...</code>), l&#39;iframe est en
+<strong>same-origin</strong> : le parent peut donc lire <code>iframe.contentDocument</code>. C&#39;est ce qui rend la
+coloration et la navigation possibles.</p>
+<pre><code class="language-tsx">const frameRef = useRef&lt;HTMLIFrameElement&gt;(null)
+
+function onFrameLoad() {
+  const doc = frameRef.current?.contentDocument
+  if (!doc) return // null si cross-origin (voir l&#39;avertissement plus bas)
+  // … injecter du style et repérer les marqueurs ici …
+}
+
+// &lt;iframe ref={frameRef} onLoad={onFrameLoad} src={preview.documentCachedContentUrl} … /&gt;
+</code></pre>
+<blockquote>
+<p>⚠️ <strong>Cross-origin = accès bloqué.</strong> Si <code>documentCachedContentUrl</code> est une URL <strong>absolue</strong>
+vers le serveur Sinequa (et non relative via le proxy), <code>contentDocument</code> vaut <code>null</code> et
+toute lecture lève une <code>SecurityError</code>. Garder la preview <strong>same-origin</strong> (proxy) est donc
+indispensable pour cette fonctionnalité — voir le chapitre « Preview » du tutoriel principal.</p>
+</blockquote>
+<h2 id="c0-1-5-le-bon-selecteur-la-classe-la-categorie">1.5 Le bon sélecteur : la classe = la catégorie</h2>
+<p>Bonne nouvelle : sur un backend Sinequa, le HTML de preview marque chaque occurrence avec un
+élément dont <strong>la classe CSS est le nom de sa catégorie</strong> — exactement les <strong>clés de
+<code>highlightsPerCategory</code></strong> (<code>.company</code>, <code>.geo</code>, <code>.person</code>, <code>.matchingpassages</code>,
+<code>.matchlocations</code>, <code>.extractslocations</code>…). Inutile de deviner : on construit le sélecteur à
+partir des clés, et on <strong>groupe</strong> chaque marqueur par catégorie.</p>
+<pre><code class="language-tsx">const catKeys = Object.keys(preview.highlightsPerCategory ?? {})
+const sel = catKeys.map((k) =&gt; &#39;.&#39; + CSS.escape(k)).join(&#39;,&#39;)
+const els = Array.from(fdoc.querySelectorAll&lt;HTMLElement&gt;(sel))
+
+const byCat = new Map&lt;string, HTMLElement[]&gt;()
+for (const el of els) {
+  const cat = catKeys.find((k) =&gt; el.classList.contains(k))
+  if (cat) (byCat.get(cat) ?? byCat.set(cat, []).get(cat)!).push(el)
+}
+</code></pre>
+<p>Comme chaque marqueur porte sa catégorie, on peut <strong>colorer par catégorie</strong> (et assortir les
+pastilles de la légende) en injectant un <code>&lt;style&gt;</code> dans l&#39;iframe :</p>
+<pre><code class="language-tsx">const PALETTE = [&#39;#6366f1&#39;, &#39;#34d399&#39;, &#39;#fbbf24&#39;, &#39;#f472b6&#39;, &#39;#38bdf8&#39;, &#39;#fb923c&#39;]
+const rules = catKeys
+  .map((k, i) =&gt; `.${CSS.escape(k)}{background:${PALETTE[i % PALETTE.length]}55;border-radius:2px}`)
+  .join(&#39;&#39;)
+const style = fdoc.createElement(&#39;style&#39;)
+style.textContent = rules + `.sqx-active{outline:2px solid #f43f5e}`
+fdoc.head.appendChild(style)
+</code></pre>
+<h2 id="c0-1-6-activer-desactiver-amp-naviguer-par-categorie">1.6 Activer/désactiver &amp; naviguer <strong>par catégorie</strong></h2>
+<p>Deux contrôles par catégorie, dans la légende :</p>
+<ol>
+<li><strong>Toggle afficher/masquer</strong> : on garde un <code>Set</code> des catégories actives ; masquer une
+catégorie = ne plus émettre sa règle de couleur (on reconstruit le <code>&lt;style&gt;</code>). Le document
+est ainsi moins encombré.</li>
+<li><strong>Une paire de flèches ⟨ ⟩ par catégorie</strong> : un <strong>curseur indépendant par catégorie</strong>
+parcourt uniquement les occurrences de cette catégorie (<code>byCat.get(key)</code>).</li>
+</ol>
+<pre><code class="language-tsx">const [active, setActive] = useState&lt;Set&lt;string&gt;&gt;(new Set(catKeys))
+const [cursors, setCursors] = useState&lt;Record&lt;string, number&gt;&gt;({})
+
+function gotoCat(key: string, delta: number) {
+  if (!active.has(key)) return
+  const list = byCatRef.current.get(key) ?? []
+  if (!list.length) return
+  const cur = cursors[key] ?? -1
+  const i = cur &lt; 0 ? (delta &gt; 0 ? 0 : list.length - 1)
+                    : (cur + delta + list.length) % list.length
+  allMarkersRef.current.forEach((el) =&gt; el.classList.remove(&#39;sqx-active&#39;))
+  list[i].classList.add(&#39;sqx-active&#39;)
+  list[i].scrollIntoView({ behavior: &#39;smooth&#39;, block: &#39;center&#39; })
+  setCursors((prev) =&gt; ({ ...prev, [key]: i }))
+}
+</code></pre>
+<p>Côté rendu, chaque ligne combine le toggle et sa mini-navigation :</p>
+<pre><code class="language-tsx">&lt;div className=&quot;hl-row&quot;&gt;
+  &lt;button className={`hl-chip${on ? &#39;&#39; : &#39; off&#39;}`} onClick={() =&gt; toggleCat(key)}&gt;
+    &lt;span className=&quot;hl-swatch&quot; style={{ background: on ? color : &#39;var(--muted)&#39; }} /&gt;
+    {label}
+  &lt;/button&gt;
+  &lt;div className=&quot;hl-rownav&quot;&gt;
+    &lt;button disabled={!on} onClick={() =&gt; gotoCat(key, -1)}&gt;⟨&lt;/button&gt;
+    &lt;span&gt;{cur &lt; 0 ? &#39;·&#39; : cur + 1} / {count}&lt;/span&gt;
+    &lt;button disabled={!on} onClick={() =&gt; gotoCat(key, 1)}&gt;⟩&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+<blockquote>
+<p>💡 <strong>Naviguer une seule catégorie</strong> : il suffit de désactiver les autres — ou, avec les
+flèches par catégorie, d&#39;utiliser directement la paire de la catégorie voulue.</p>
+</blockquote>
+<h2 id="c0-1-7-le-piege-des-libelles-ce-sont-des-cles-i18n">1.7 Le piège des libellés : ce sont des clés i18n</h2>
+<p>Les champs <code>categoryDisplayLabel</code> / <code>categoryDisplayLabelPlural</code> ne contiennent <strong>pas</strong> un
+libellé prêt à afficher, mais une <strong>clé de traduction</strong> (ex. <code>msg#metadata.companyPluralLabel</code>,
+<code>metadata.geo_plural_label</code>). La SBA complète les résout via son <strong>bundle i18n</strong> ; sans ce
+pipeline, on les mappe nous-mêmes :</p>
+<pre><code class="language-tsx">const CAT_LABELS: Record&lt;string, string&gt; = {
+  company: &#39;Sociétés&#39;, person: &#39;Personnes&#39;, geo: &#39;Lieux&#39;,
+  matchingpassages: &#39;Passages pertinents&#39;, matchlocations: &#39;Termes recherchés&#39;,
+  extractslocations: &#39;Extraits&#39;,
+}
+const looksLikeI18nKey = (s?: string) =&gt; !s || /msg#|metadata\.|label$/i.test(s)
+
+function prettyCategory(key: string, raw?: string): string {
+  if (CAT_LABELS[key]) return CAT_LABELS[key]
+  if (raw &amp;&amp; !looksLikeI18nKey(raw)) return raw
+  return key.charAt(0).toUpperCase() + key.slice(1)
+}
+</code></pre>
+<h2 id="c0-1-8-pieges-amp-degradation">1.8 Pièges &amp; dégradation</h2>
+<blockquote>
+<p>⚠️ <strong>Same-origin obligatoire</strong> pour lire/modifier l&#39;iframe (cf. §1.4) : tout passe par le
+proxy, comme pour le cookie de session.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Tout reconstruire à chaque document.</strong> <code>onLoad</code> se déclenche à chaque nouvelle preview :
+re-scannez les marqueurs, réinitialisez les curseurs, et réactivez toutes les catégories.</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>Repli si pas de catégories.</strong> Si <code>highlightsPerCategory</code> est vide (autre serveur), la
+démo retombe sur une <strong>heuristique</strong> : elle scanne le DOM, compte les éléments par classe /
+attribut et retient la signature dont le total est le plus proche de
+<code>highlightsPerLocation.length</code> (journalisé en console). La coloration reste uniforme et la
+nav par catégorie est désactivée.</p>
+</blockquote>
+<h2 id="c0-1-9-implementation-de-reference">1.9 Implémentation de référence</h2>
+<p>Tout ceci <strong>est implémenté</strong> dans l&#39;application : <code>src/components/preview.tsx</code>
+(composant <code>PreviewPane</code>), utilisé dans le <code>Sheet</code> de la page <code>/search</code>. La <strong>légende +
+compteurs</strong> fonctionnent uniquement à partir des données (<code>highlightsPer*</code>), tandis que la
+<strong>coloration + navigation</strong> décorent l&#39;iframe (same-origin).</p>
+</section>
+<section class="chapter" id="chapter-1" data-index="1"><h1 id="c1-2-facettes-agregations-tri-onglets-amp-scopes">2. Facettes, agrégations, tri, onglets &amp; scopes</h1>
+<p>La réponse de <code>fetchQuery()</code> ne contient pas que des documents : elle embarque aussi les
+<strong>agrégations</strong> (facettes), les <strong>onglets</strong> et l&#39;info de <strong>tri</strong>. Ce chapitre montre comment
+les exploiter pour enrichir la page de recherche.</p>
+<h2 id="c1-2-1-ce-que-renvoie-result">2.1 Ce que renvoie <code>Result</code></h2>
+<pre><code class="language-ts">type Result = {
+  records: Article[]
+  aggregations: (Aggregation | TreeAggregation)[] // facettes
+  tabs: Tab[]                                      // onglets
+  tab: string                                      // onglet courant
+  sort: string                                     // tri courant
+  page: number; pageSize: number; rowCount: number
+  // …
+}
+</code></pre>
+<p>Et côté <strong>requête</strong>, <code>Query</code> accepte les leviers correspondants :</p>
+<pre><code class="language-ts">type Query = {
+  name: string
+  text?: string
+  filters?: Filter | Filter[] | ExprFilter // filtres issus des facettes (voir §2.3)
+  tab?: string        // onglet sélectionné
+  scope?: string      // périmètre
+  sort?: string       // choix de tri
+  page?: number
+  pageSize?: number
+  // …
+}
+</code></pre>
+<blockquote>
+<p>⚠️ Il existe aussi un champ <code>select?: Select[]</code> (expressions <code>colonne:\</code>valeur`<code>). C&#39;est l&#39;**ancienne** API de filtrage : préférez désormais **</code>query.filters<code>** (objets </code>Filter`
+structurés, voir §2.3).</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>Le principe général</strong> : on garde la <code>Query</code> courante en état, on <strong>modifie un champ</strong>
+(<code>filters</code>, <code>tab</code>, <code>sort</code>, <code>scope</code>), on <strong>repart en page 1</strong> et on rappelle <code>fetchQuery</code>.
+Le <code>Result</code> renvoie l&#39;état réel (onglet/tri retenus, nouveaux comptes de facettes).</p>
+</blockquote>
+<h2 id="c1-2-2-afficher-les-facettes-agregations">2.2 Afficher les facettes (agrégations)</h2>
+<pre><code class="language-ts">type Aggregation = {
+  name: string      // nom de l&#39;agrégation (clé)
+  column: string    // colonne d&#39;index sous-jacente
+  items: AggregationItem[]
+  isTree?: boolean  // agrégation arbre (affichage hiérarchique, voir §2.7)
+  $hasMore?: boolean
+}
+type AggregationItem = {
+  value: string | number | boolean | null
+  display?: string
+  count: number
+  $selected?: boolean
+}
+</code></pre>
+<pre><code class="language-tsx">function Facets({
+  result,
+  onToggle,
+}: {
+  result: Result
+  onToggle: (agg: Aggregation, item: AggregationItem) =&gt; void
+}) {
+  return (
+    &lt;div className=&quot;facets&quot;&gt;
+      {result.aggregations.map((agg) =&gt; (
+        &lt;section key={agg.name}&gt;
+          &lt;h3&gt;{agg.name}&lt;/h3&gt;
+          &lt;ul&gt;
+            {agg.items.map((item) =&gt; (
+              &lt;li key={String(item.value)}&gt;
+                &lt;label&gt;
+                  &lt;input
+                    type=&quot;checkbox&quot;
+                    checked={!!item.$selected}
+                    onChange={() =&gt; onToggle(agg, item)}
+                  /&gt;
+                  {item.display ?? String(item.value)} ({item.count})
+                &lt;/label&gt;
+              &lt;/li&gt;
+            ))}
+          &lt;/ul&gt;
+        &lt;/section&gt;
+      ))}
+    &lt;/div&gt;
+  )
+}
+</code></pre>
+<h2 id="c1-2-3-filtrer-via-les-facettes-query-filters">2.3 Filtrer via les facettes : <code>query.filters</code></h2>
+<p>La façon <strong>actuelle</strong> de filtrer est <code>query.filters</code> — des objets <strong><code>Filter</code></strong> structurés
+(et non plus des expressions <code>select</code>). Les briques :</p>
+<pre><code class="language-ts">// Un filtre « feuille »
+type Filter = { field?: string; operator?: FilterOperator; value?: string | number | boolean }
+// Plusieurs valeurs pour un même champ (OU)
+type InFilter = { field: string; operator: &#39;in&#39;; values: string[] }
+// Un nœud combinant des filtres
+type ExprFilter = { operator: &#39;and&#39; | &#39;or&#39; | &#39;not&#39;; filters: Filter[] }
+</code></pre>
+<p>Le <code>field</code> est la <strong>colonne</strong> de l&#39;agrégation (<code>agg.column</code>), la <code>value</code> celle de l&#39;item.</p>
+<pre><code class="language-tsx">// Une sélection de facette = un filtre feuille { field, value }.
+// ⚠️ Agrégation ARBRE (agg.isTree) : la valeur doit être un motif de chemin `/&lt;chemin&gt;/*`
+// (le nœud + tout ce qu&#39;il contient). Sinon, la valeur brute de l&#39;item.
+function facetValue(agg: Aggregation, item: AggregationItem): string {
+  if (agg.isTree) {
+    const path = String((item as { $path?: string }).$path ?? item.value ?? &#39;&#39;)
+    return `/${path.replace(/^\/+|\/+$/g, &#39;&#39;)}/*`
+  }
+  return String(item.value)
+}
+
+function filterFor(agg: Aggregation, item: AggregationItem): Filter {
+  return { field: agg.column, value: facetValue(agg, item) }
+}
+
+// On accumule les filtres, regroupés par champ, et on combine le tout en AND.
+function buildFilters(selected: Filter[]): ExprFilter | Filter | undefined {
+  if (selected.length === 0) return undefined
+  if (selected.length === 1) return selected[0]
+
+  // Regrouper les valeurs d&#39;un même champ en un InFilter (OU intra-facette),
+  // puis combiner les champs entre eux en AND.
+  const byField = new Map&lt;string, string[]&gt;()
+  for (const f of selected) {
+    const list = byField.get(f.field!) ?? []
+    list.push(String(f.value))
+    byField.set(f.field!, list)
+  }
+  const perField: Filter[] = [...byField.entries()].map(([field, values]) =&gt;
+    values.length &gt; 1
+      ? ({ field, operator: &#39;in&#39;, values } as InFilter)
+      : ({ field, value: values[0] } as Filter),
+  )
+  return perField.length === 1 ? perField[0] : { operator: &#39;and&#39;, filters: perField }
+}
+
+// Ajouter / retirer une sélection puis relancer en page 1 :
+function onToggle(agg: Aggregation, item: AggregationItem) {
+  setSelected((prev) =&gt; {
+    const f = filterFor(agg, item)
+    const exists = prev.some((p) =&gt; p.field === f.field &amp;&amp; p.value === f.value)
+    const next = exists
+      ? prev.filter((p) =&gt; !(p.field === f.field &amp;&amp; p.value === f.value))
+      : [...prev, f]
+    // runSearch ré-appelle fetchQuery({ ..., filters: buildFilters(next), page: 1 })
+    return next
+  })
+}
+</code></pre>
+<blockquote>
+<p>💡 <strong>Facette arbre = sélection unique.</strong> On ne sélectionne qu&#39;<strong>un seul</strong> nœud d&#39;une
+facette <code>treepath</code> à la fois : cocher un nœud <strong>remplace</strong> la sélection précédente sur ce
+champ. Le filtre est alors un simple <code>{ field: &#39;treepath&#39;, value: &#39;/&lt;chemin&gt;/*&#39; }</code> — pas
+besoin d&#39;opérateur ni de combinaison.</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>Combinaisons</strong> : <code>{ operator: &#39;and&#39;, filters: [...] }</code> pour croiser plusieurs facettes,
+<code>{ field, operator: &#39;in&#39;, values: [...] }</code> pour plusieurs valeurs d&#39;une même facette (OU),
+<code>{ operator: &#39;not&#39;, filters: [...] }</code> pour exclure. Opérateurs scalaires dispos sur une
+feuille : <code>eq</code> (défaut), <code>neq</code>, <code>gt/gte/lt/lte</code>, <code>like</code>, <code>contains</code>, <code>regex</code>, <code>null</code>, <code>notnull</code> ;
+plages : <code>in</code>, <code>between</code> (<code>{ field, operator: &#39;between&#39;, start, end }</code>).</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong><code>query.select</code> est l&#39;ancienne API</strong> (expressions <code>colonne:\</code>valeur`<code>). Elle existe encore mais </code>query.filters<code>(objets</code>Filter`) est la voie recommandée aujourd&#39;hui.</p>
+</blockquote>
+<h2 id="c1-2-4-voir-plus-sur-une-facette-action-aggregate">2.4 « Voir plus » sur une facette : action <code>aggregate</code></h2>
+<p>Une agrégation ne renvoie qu&#39;un nombre limité de valeurs. Pour charger la suite, on relance
+la <strong>même requête</strong> avec <code>action: &#39;aggregate&#39;</code> et <code>aggregations: { [nom]: { skip, count } }</code>
+(<code>skip</code> = nombre de valeurs déjà affichées), puis on <strong>ajoute</strong> les valeurs renvoyées.</p>
+<pre><code class="language-tsx">async function loadMore(agg: Aggregation) {
+  const skip = agg.items?.length ?? 0
+  const count = 10
+  const q: Query = {
+    ...currentQuery, // name, text, filters, tab, sort, scope…
+    action: &#39;aggregate&#39;,
+    aggregations: { [agg.name]: { skip, count } }, // clé = NOM de l&#39;agrégation
+  }
+  const res = await fetchQuery(q)
+  const more = res.aggregations.find((a) =&gt; a.name === agg.name)
+  const newItems = more?.items ?? []
+  // Fusion : items existants + nouveaux ; plus de pages si on a reçu une page pleine.
+  updateAggregation(agg.name, (a) =&gt; ({
+    ...a,
+    items: [...a.items, ...newItems],
+    $hasMore: newItems.length &gt;= count,
+  }))
+}
+</code></pre>
+<blockquote>
+<p>💡 <strong><code>fetchAggregation()</code> ≠ « voir plus ».</strong> Cette fonction de la lib sert à <strong>récupérer
+une agrégation</strong> (en obtenir les valeurs), pas à paginer la suite d&#39;une facette déjà
+affichée. Pour le « voir plus », relancez la requête en <code>action: &#39;aggregate&#39;</code> via
+<code>fetchQuery</code> (avec <code>{ [nom]: { skip, count } }</code>) comme ci-dessus.</p>
+</blockquote>
+<h2 id="c1-2-5-onglets-tabs">2.5 Onglets (<code>tabs</code>)</h2>
+<pre><code class="language-ts">type Tab = { name: string; display: string; value: string; count: number }
+</code></pre>
+<pre><code class="language-tsx">&lt;div className=&quot;tabs-bar&quot;&gt;
+  {result.tabs.map((t) =&gt; (
+    &lt;button
+      key={t.name}
+      className={result.tab === t.name ? &#39;active&#39; : &#39;&#39;}
+      onClick={() =&gt; runSearch(searchedText, 1, { tab: t.name })}
+    &gt;
+      {t.display} ({t.count})
+    &lt;/button&gt;
+  ))}
+&lt;/div&gt;
+</code></pre>
+<blockquote>
+<p>💡 Changer d&#39;onglet <strong>réinitialise la pagination</strong> : repartez en page 1. Les facettes et le
+<code>rowCount</code> se recalculent pour l&#39;onglet choisi.</p>
+</blockquote>
+<h2 id="c1-2-6-tri-amp-perimetre-scope">2.6 Tri &amp; périmètre (scope)</h2>
+<ul>
+<li><strong>Tri</strong> : <code>query.sort = &#39;&lt;nom du choix de tri&gt;&#39;</code> (défini côté app, <code>CCSortingChoice</code>).</li>
+<li><strong>Scope</strong> : <code>query.scope = &#39;&lt;nom du scope&gt;&#39;</code> (<code>CCScope</code>) restreint le périmètre interrogé.</li>
+</ul>
+<pre><code class="language-tsx">&lt;select
+  value={result.sort}
+  onChange={(e) =&gt; runSearch(searchedText, 1, { sort: e.target.value })}
+&gt;
+  &lt;option value=&quot;relevance&quot;&gt;Pertinence&lt;/option&gt;
+  &lt;option value=&quot;date&quot;&gt;Date&lt;/option&gt;
+&lt;/select&gt;
+</code></pre>
+<blockquote>
+<p>💡 <strong>Centralisez</strong> : faites de <code>runSearch</code> une fonction qui fusionne un patch de <code>Query</code>
+(<code>{ tab }</code>, <code>{ sort }</code>, <code>{ filters }</code>, <code>{ scope }</code>) dans la requête courante, force <code>page: 1</code>,
+puis appelle <code>fetchQuery</code>. Vous obtenez facettes, onglets, tri et scope <strong>cohérents</strong> d&#39;un
+seul point d&#39;entrée.</p>
+</blockquote>
+<h2 id="c1-2-7-facettes-de-type-arbre-affichage-hierarchique">2.7 Facettes de type arbre (affichage hiérarchique)</h2>
+<p>Une agrégation <code>isTree</code> (ex. <code>treepath</code>) n&#39;est pas une liste plate : ses <code>items</code> sont des
+<strong><code>TreeAggregationNode</code></strong> imbriqués.</p>
+<pre><code class="language-ts">type TreeAggregationNode = {
+  value: string
+  display?: string
+  count: number
+  hasChildren?: boolean       // a des enfants même si `items` n&#39;est pas encore peuplé
+  items: TreeAggregationNode[] // enfants (chargés à la demande)
+  $path?: string              // chemin complet, calculé par la lib après fetchQuery
+  $level?: number
+}
+</code></pre>
+<p>On la <strong>rend récursivement</strong> (indentation par niveau) avec un chevron déplier/replier sur les
+nœuds qui ont des enfants. Les enfants se chargent <strong>à la demande</strong> via l&#39;action <code>open</code> :</p>
+<pre><code class="language-tsx">async function openNode(agg: Aggregation, node: TreeAggregationNode) {
+  const path = String(node.$path ?? node.value).replace(/^\/+|\/+$/g, &#39;&#39;)
+  const res = await fetchQuery({
+    ...currentQuery,
+    action: &#39;open&#39;,
+    // ⚠️ chemin entre BACKTICKS (il peut contenir des espaces) :
+    open: [{ aggregation: agg.name, expression: `${agg.column}:\`/${path}/*\`` }],
+  })
+  // La réponse renvoie l&#39;arbre complet depuis la racine, avec le nœud ouvert
+  // dont les `items` sont peuplés. On retrouve le nœud par $path et on greffe ses items.
+  const opened = res.aggregations.find((a) =&gt; a.name === agg.name)
+  const found = findNodeByPath(opened?.items ?? [], node.$path)
+  attachChildren(node, found?.items ?? [])
+}
+</code></pre>
+<blockquote>
+<p>⚠️ <strong>Backticks obligatoires</strong> autour du chemin dans l&#39;<code>expression</code> :
+<code>treepath:`/Documentation/Administration Interface/*`</code> — sans eux, un chemin contenant
+des espaces casse la requête.</p>
+</blockquote>
+<blockquote>
+<p>💡 <strong>Sélection unique</strong> (rappel §2.3) : une facette arbre ne sélectionne <strong>qu&#39;un seul</strong> nœud
+à la fois ; cocher un nœud remplace la sélection précédente sur le champ, avec un filtre
+<code>{ field: &#39;treepath&#39;, value: &#39;/&lt;chemin&gt;/*&#39; }</code> (sans opérateur).</p>
+</blockquote>
+<h2 id="c1-2-8-implementation-de-reference">2.8 Implémentation de référence</h2>
+<p>Tout le chapitre <strong>est implémenté</strong> dans <code>src/routes/_protected/search.tsx</code> :</p>
+<ul>
+<li>panneau de facettes (liste <strong>et</strong> arbre), filtrage via <code>query.filters</code>, « Effacer les filtres » ;</li>
+<li>« Voir plus » (action <code>aggregate</code>), onglets (<code>result.tabs</code>), tri (<code>CCSortingChoice</code>),
+périmètre (<code>CCScope</code>) ;</li>
+<li>un <strong>point d&#39;entrée unique</strong> <code>execute(overrides)</code> qui fusionne l&#39;état courant
+(<code>text/filters/tab/sort/scope/page</code>), repart en page 1 (sauf pagination) et relance <code>fetchQuery</code>.</li>
+</ul>
+</section>
+<section class="chapter" id="chapter-2" data-index="2"><h1 id="c2-3-rafraichissement-du-token-amp-gestion-de-l-39-expiration">3. Rafraîchissement du token &amp; gestion de l&#39;expiration</h1>
+<p>L&#39;authentification Sinequa repose sur un <strong>token CSRF</strong> (stocké dans le <code>sessionStorage</code>) et
+un <strong>cookie de session</strong>. Ce chapitre explique comment la session se prolonge <strong>toute seule</strong>,
+et comment réagir proprement quand elle expire malgré tout.</p>
+<h2 id="c2-3-1-rappel-isauthenticated-ne-teste-que-la-presence">3.1 Rappel : <code>isAuthenticated()</code> ne teste que la présence</h2>
+<pre><code class="language-ts">isAuthenticated() // true s&#39;il existe un token CSRF en sessionStorage — PAS sa validité
+</code></pre>
+<blockquote>
+<p>⚠️ Un token <strong>expiré</strong> fait toujours renvoyer <code>true</code> à <code>isAuthenticated()</code>. Ne vous en
+servez que pour <strong>piloter l&#39;UI</strong> (afficher l&#39;app vs l&#39;écran de login), jamais comme preuve
+que le prochain appel réseau réussira.</p>
+</blockquote>
+<h2 id="c2-3-2-le-rafraichissement-est-automatique-header-sinequa-jwt-refresh">3.2 Le rafraîchissement est automatique (header <code>sinequa-jwt-refresh</code>)</h2>
+<p>À <strong>chaque réponse</strong>, le helper interne <code>handleResponse</code> regarde un en-tête de réponse et met
+à jour le token si le serveur en fournit un nouveau :</p>
+<pre><code class="language-ts">// dans @sinequa/atomic (handle-response)
+const newToken = response.headers.get(&#39;sinequa-jwt-refresh&#39;)
+if (newToken !== null) setToken(newToken)
+</code></pre>
+<blockquote>
+<p>💡 <strong>Session glissante.</strong> Tant que l&#39;utilisateur fait des requêtes, le serveur peut renvoyer
+un token rafraîchi via <code>sinequa-jwt-refresh</code>, et la lib le stocke <strong>de façon transparente</strong>.
+Vous n&#39;avez en général <strong>rien à faire</strong> pour prolonger une session active.</p>
+</blockquote>
+<h2 id="c2-3-3-ce-qui-se-passe-en-cas-d-39-expiration-401">3.3 Ce qui se passe en cas d&#39;expiration (401)</h2>
+<p>Quand le token/cookie n&#39;est plus valide, l&#39;appel API renvoie <strong>401</strong> et <code>handleResponse</code>
+<strong>lève une erreur</strong> (<code>UnauthorizedError</code>) — la promesse de <code>fetchQuery</code>, <code>fetchPreview</code>, etc.
+<strong>rejette</strong>. (De même, <code>500</code> → <code>ServerError</code>, autres → <code>ApiError</code>.)</p>
+<p>Il n&#39;y a donc pas de redirection magique : <strong>c&#39;est à l&#39;application de réagir</strong> au rejet.</p>
+<h2 id="c2-3-4-patron-retry-silencieux-puis-redirection">3.4 Patron : retry silencieux puis redirection</h2>
+<p>Stratégie robuste autour d&#39;un appel : sur 401, tenter de <strong>récupérer silencieusement</strong> une
+session (cookie SSO encore valide) via <code>getCsrfToken()</code> ; si ça échoue, réinitialiser l&#39;état
+local — ce qui ramène l&#39;utilisateur au login.</p>
+<pre><code class="language-ts">import { clearSessionTokens, getCsrfToken } from &#39;@sinequa/atomic&#39;
+
+function isUnauthorized(err: unknown): boolean {
+  // UnauthorizedError ou message contenant &quot;unauthorized&quot;
+  return (
+    (err as { name?: string })?.name === &#39;UnauthorizedError&#39; ||
+    (err instanceof Error &amp;&amp; /unauthor/i.test(err.message))
+  )
+}
+
+export async function withReauth&lt;T&gt;(call: () =&gt; Promise&lt;T&gt;): Promise&lt;T&gt; {
+  try {
+    return await call()
+  } catch (err) {
+    if (!isUnauthorized(err)) throw err
+
+    // 1) Tenter de re-valider une session existante (cookie/SSO) — ne redirige pas.
+    //    On se fie au TOKEN renvoyé (et non à isAuthenticated(), qui ne teste que la
+    //    présence d&#39;un token possiblement périmé) pour décider de rejouer.
+    let fresh: string | null = null
+    try {
+      fresh = await getCsrfToken()
+    } catch {
+      /* pas de session ambiante */
+    }
+    if (fresh) return await call() // retry unique
+
+    // 2) Sinon : reset de l&#39;état local. clearSessionTokens émet l&#39;évènement
+    //    &#39;authenticated&#39; = false → le layout protégé redirige vers /login.
+    clearSessionTokens()
+    throw err
+  }
+}
+</code></pre>
+<p>Utilisation :</p>
+<pre><code class="language-ts">const result = await withReauth(() =&gt; fetchQuery({ name, text, page }))
+</code></pre>
+<blockquote>
+<p>💡 <strong><code>clearSessionTokens()</code></strong> vide les tokens locaux <strong>et émet <code>&#39;authenticated&#39;</code> à <code>false</code></strong>.
+Comme votre <code>AuthProvider</code> écoute déjà cet évènement (voir le tutoriel principal), la garde
+de route renverra automatiquement vers <code>/login</code>. Pas besoin de manipuler la navigation ici.</p>
+</blockquote>
+<h2 id="c2-3-5-outils-de-date-fournis-par-la-lib">3.5 Outils de date fournis par la lib</h2>
+<p>Si vous stockez/recevez un horodatage d&#39;expiration, <code>@sinequa/atomic</code> expose des helpers :</p>
+<pre><code class="language-ts">isExpired(iso?)            // true si la date ISO est passée (ou maintenant)
+expiresSoon(iso?, days=7)  // true si la date tombe dans les N prochains jours
+</code></pre>
+<p>Pratique pour, par exemple, afficher un bandeau « votre session expire bientôt » ou forcer un
+<code>getCsrfToken()</code> préventif.</p>
+<h2 id="c2-3-6-a-retenir">3.6 À retenir</h2>
+<blockquote>
+<p>💡 <strong>Ne réimplémentez pas le rafraîchissement</strong> : il est déjà géré via
+<code>sinequa-jwt-refresh</code>. Concentrez-vous sur le <strong>chemin d&#39;échec</strong> (401) : retry silencieux,
+puis <code>clearSessionTokens()</code> → retour au login.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Côté SSR</strong>, ne touchez jamais aux tokens pendant le rendu serveur (pas de
+<code>sessionStorage</code>). Toute cette logique vit côté client, comme le reste de l&#39;auth.</p>
+</blockquote>
+<blockquote>
+<p>⚠️ <strong>Le retry doit être borné</strong> (une seule tentative) pour éviter les boucles si le serveur
+répond systématiquement 401.</p>
+</blockquote>
+<h2 id="c2-3-7-implementation-de-reference">3.7 Implémentation de référence</h2>
+<p>Ce patron <strong>est implémenté</strong> dans <code>src/auth/with-reauth.ts</code> (fonction <code>withReauth</code>), et appliqué
+aux appels de données de la page <code>/search</code> : <code>fetchApp</code>, <code>fetchQuery</code> (recherche, <code>aggregate</code>,
+<code>open</code>) et <code>fetchPreview</code> sont enveloppés via <code>withReauth(() =&gt; …)</code>. Sur expiration, l&#39;utilisateur
+est silencieusement reconnecté si la session le permet, sinon renvoyé vers <code>/login</code>.</p>
+</section>
+<section class="chapter" id="chapter-3" data-index="3"><h1 id="c3-4-deploiement-au-dela-du-proxy-de-dev">4. Déploiement (au-delà du proxy de dev)</h1>
+<p>En développement, tout passe par le <strong>proxy Vite</strong> (<code>vite.config.ts</code>). Mais ce proxy
+<strong>n&#39;existe qu&#39;en <code>vite dev</code></strong> : en production, il faut reproduire la même topologie
+autrement. Ce chapitre décrit les options.</p>
+<h2 id="c3-4-1-rappel-comment-la-lib-construit-ses-urls">4.1 Rappel : comment la lib construit ses URLs</h2>
+<p>Les helpers de <code>@sinequa/atomic</code> font, pour chaque appel :</p>
+<pre><code class="language-ts">const url = backendUrl ? `${backendUrl}/${endpoint}` : endpoint
+fetch(url, { credentials: &#39;include&#39;, /* … */ })
+</code></pre>
+<ul>
+<li><code>backendUrl</code> est rempli par <code>appInitializerFn()</code> avec <code>window.location.origin</code> s&#39;il n&#39;est
+pas défini.</li>
+<li><code>credentials: &#39;include&#39;</code> → le <strong>cookie de session</strong> est envoyé. En <strong>same-origin</strong>, c&#39;est
+transparent ; en <strong>cross-origin</strong>, cela impose une configuration CORS stricte.</li>
+</ul>
+<p>Deux stratégies de production en découlent.</p>
+<h2 id="c3-4-2-option-a-reverse-proxy-same-origin-recommande">4.2 Option A — Reverse proxy same-origin (recommandé)</h2>
+<p>Servez l&#39;application <strong>et</strong> relayez les chemins Sinequa depuis <strong>la même origine</strong>
+(ex. <code>https://mon-app.example.com</code>). On garde alors <code>backendUrl = window.location.origin</code>
+(défaut) : aucun souci de CORS, le cookie est same-site.</p>
+<p>Il faut reproduire, côté reverse proxy (nginx, Traefik, Apache…), <strong>les mêmes préfixes</strong> que
+le proxy de dev. Exemple nginx :</p>
+<pre><code class="language-nginx">server {
+  listen 443 ssl;
+  server_name mon-app.example.com;
+
+  # 1) Les appels Sinequa -&gt; backend
+  location ~ ^/(api|xdownload|endpoints|r|rest|auth/redirect|saml/redirect) {
+    proxy_pass https://su-sba.demo.sinequa.com;
+    proxy_set_header Host su-sba.demo.sinequa.com;   # équivalent de changeOrigin
+    proxy_ssl_server_name on;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    # WebSocket pour /endpoints :
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection &quot;upgrade&quot;;
+  }
+
+  # 2) L&#39;application (serveur TanStack Start ou fichiers statiques)
+  location / {
+    proxy_pass http://127.0.0.1:3000;   # node .output/server/index.mjs
+  }
+}
+</code></pre>
+<blockquote>
+<p>💡 <strong>Faites correspondre la liste des préfixes</strong> à celle de <code>vite.config.ts</code>
+(<code>/api</code>, <code>/xdownload</code>, <code>/endpoints</code>, <code>/r</code>, <code>/rest</code>, <code>/auth/redirect</code>, <code>/saml/redirect</code>).
+Si vous en oubliez un (souvent <code>/auth/redirect</code>), le <strong>retour OAuth</strong> ou un téléchargement
+échouera silencieusement.</p>
+</blockquote>
+<h2 id="c3-4-3-option-b-backendurl-direct-cors">4.3 Option B — <code>backendUrl</code> direct + CORS</h2>
+<p>Pointer directement vers le serveur Sinequa :</p>
+<pre><code class="language-ts">setGlobalConfig({ backendUrl: &#39;https://su-sba.demo.sinequa.com&#39; })
+</code></pre>
+<p>Les requêtes deviennent <strong>cross-origin</strong>. Le serveur Sinequa doit alors autoriser :</p>
+<ul>
+<li><code>Access-Control-Allow-Origin: https://mon-app.example.com</code> (origine <strong>exacte</strong>, jamais <code>*</code>
+avec credentials) ;</li>
+<li><code>Access-Control-Allow-Credentials: true</code> ;</li>
+<li>les en-têtes/méthodes utilisés (préflight <code>OPTIONS</code>).</li>
+</ul>
+<p>Et le <strong>cookie</strong> de session devient cross-site → il doit être posé en <code>SameSite=None; Secure</code>
+(donc <strong>HTTPS obligatoire</strong> des deux côtés).</p>
+<blockquote>
+<p>⚠️ <strong>Plus fragile</strong> que l&#39;option A : CORS + cookies cross-site sont une source classique de
+bugs (préflight, <code>SameSite</code>, 3rd-party cookies bloqués par certains navigateurs). Préférez
+le <strong>reverse proxy same-origin</strong> si possible.</p>
+</blockquote>
+<h2 id="c3-4-4-oauth-saml-en-production-le-redirect-uri">4.4 OAuth/SAML en production : le <code>redirect_uri</code></h2>
+<p>Comme en dev (<code>identity-dev</code> → <code>https://localhost:4200/auth/redirect</code>), le provider utilisé
+en prod doit avoir un <strong><code>redirect_uri</code> enregistré pour l&#39;origine de production</strong>.</p>
+<blockquote>
+<p>⚠️ Prévoyez un provider (ou une config) dont le <code>redirect_uri</code> pointe vers
+<code>https://mon-app.example.com/auth/redirect</code>, et pointez <code>VITE_SINEQUA_OAUTH_PROVIDER</code>
+dessus. Un <code>redirect_uri</code> qui ne correspond pas exactement = rejet côté IdP.</p>
+</blockquote>
+<h2 id="c3-4-5-ssr-tanstack-start-amp-specificites">4.5 SSR TanStack Start &amp; spécificités</h2>
+<ul>
+<li>En prod, l&#39;app est servie par un serveur Node (<code>node .output/server/index.mjs</code>). Le
+<strong>proxy de dev disparaît</strong> : c&#39;est le <strong>reverse proxy devant</strong> qui relaie les chemins
+Sinequa (option A).</li>
+<li>L&#39;<strong>authentification reste côté client</strong> (cf. tutoriel principal) : aucune logique d&#39;auth
+ne doit s&#39;exécuter pendant le rendu serveur.</li>
+<li><strong>HTTPS partout</strong> : requis pour les cookies <code>Secure</code> et le flux OAuth.</li>
+</ul>
+<h2 id="c3-4-6-checklist-de-mise-en-production">4.6 Checklist de mise en production</h2>
+<blockquote>
+<p>💡 Avant de livrer :</p>
+<ul>
+<li><input disabled="" type="checkbox"> Reverse proxy relayant <strong>tous</strong> les préfixes Sinequa (mêmes que <code>vite.config.ts</code>).</li>
+<li><input disabled="" type="checkbox"> <code>backendUrl</code> cohérent : laissé par défaut (option A) <strong>ou</strong> défini + CORS (option B).</li>
+<li><input disabled="" type="checkbox"> Provider OAuth/SAML avec <code>redirect_uri</code> = origine de prod.</li>
+<li><input disabled="" type="checkbox"> <code>VITE_SINEQUA_APP</code> / <code>VITE_SINEQUA_OAUTH_PROVIDER</code> adaptés à l&#39;environnement.</li>
+<li><input disabled="" type="checkbox"> HTTPS de bout en bout.</li>
+<li><input disabled="" type="checkbox"> Build vérifié (<code>npm run build</code>) + typecheck (<code>npm run typecheck</code>).</li>
+</ul>
+</blockquote>
+</section>
+    <nav class="pager">
+      <button id="prevBtn"><span class="lbl">← Précédent</span><span class="ttl"></span></button>
+      <button id="nextBtn" class="next"><span class="lbl">Suivant →</span><span class="ttl"></span></button>
+    </nav>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11.9.0/build/highlight.min.js"></script>
+<script>
+(function(){
+  var root=document.documentElement;
+  var chapters=[].slice.call(document.querySelectorAll('.chapter'));
+  var realCount=document.querySelectorAll('.chapter:not(.home)').length;
+  var chapterLinks=[].slice.call(document.querySelectorAll('.nav-chapter'));
+  var groups=[].slice.call(document.querySelectorAll('.nav-group'));
+  var current=0;
+
+  function setActive(idx){
+    chapterLinks.forEach(function(a){
+      var on=Number(a.getAttribute('data-chapter'))===idx;
+      a.classList.toggle('active',on);
+    });
+    groups.forEach(function(g){
+      var a=g.querySelector('.nav-chapter');
+      g.classList.toggle('active', a && Number(a.getAttribute('data-chapter'))===idx);
+    });
+    var hash=location.hash.replace('#','');
+    [].slice.call(document.querySelectorAll('.nav-sub')).forEach(function(a){
+      a.classList.toggle('current', a.getAttribute('href')==='#'+hash);
+    });
+  }
+
+  function updatePager(idx){
+    var prev=document.getElementById('prevBtn'), next=document.getElementById('nextBtn');
+    prev.disabled = idx<=-1; next.disabled = idx>=realCount-1;
+    prev.dataset.idx = idx-1; next.dataset.idx = idx+1;
+    prev.querySelector('.ttl').textContent = idx>-1 ? chapterTitle(idx-1) : '';
+    next.querySelector('.ttl').textContent = idx<realCount-1 ? chapterTitle(idx+1) : '';
+  }
+
+  function chapterTitle(idx){
+    if(idx===-1) return 'Accueil';
+    var a=document.querySelector('.nav-chapter[data-chapter="'+idx+'"]');
+    return a? a.textContent : '';
+  }
+
+  function show(idx, targetId){
+    current=idx;
+    chapters.forEach(function(c){
+      c.style.display = (Number(c.getAttribute('data-index'))===idx)?'block':'none';
+    });
+    setActive(idx); updatePager(idx);
+    document.body.classList.remove('nav-open');
+    var main=document.querySelector('.main');
+    if(targetId){
+      var el=document.getElementById(targetId);
+      if(el){ el.scrollIntoView({behavior:'smooth',block:'start'}); return; }
+    }
+    if(main){ main.scrollTo({top:0,behavior:'smooth'}); }
+  }
+
+  function chapterOf(id){
+    var el=document.getElementById(id);
+    if(!el) return null;
+    var sec=el.closest('.chapter');
+    return sec? Number(sec.getAttribute('data-index')) : null;
+  }
+
+  function route(){
+    var hash=location.hash.replace('#','');
+    if(!hash||hash==='home'){ show(-1,null); return; }
+    var m=hash.match(/^chapter-(\d+)$/);
+    if(m){ show(Number(m[1]),null); return; }
+    var idx=chapterOf(hash);
+    show(idx===null?-1:idx, idx===null?null:hash);
+  }
+
+  window.addEventListener('hashchange', route);
+
+  document.getElementById('prevBtn').addEventListener('click', function(){
+    var i=Number(this.dataset.idx); if(i>=-1){ location.hash = i===-1?'#home':'#chapter-'+i; }
+  });
+  document.getElementById('nextBtn').addEventListener('click', function(){
+    var i=Number(this.dataset.idx); if(i<realCount){ location.hash = i===-1?'#home':'#chapter-'+i; }
+  });
+  document.getElementById('menuBtn').addEventListener('click', function(){
+    document.body.classList.toggle('nav-open');
+  });
+
+  // Theme toggle
+  var themeBtn=document.getElementById('themeBtn');
+  function syncThemeLabel(){ themeBtn.textContent = root.getAttribute('data-theme')==='light'?'🌙 Sombre':'☀️ Clair'; }
+  syncThemeLabel();
+  themeBtn.addEventListener('click', function(){
+    var t=root.getAttribute('data-theme')==='light'?'dark':'light';
+    root.setAttribute('data-theme',t);
+    try{ localStorage.setItem('tuto-theme',t); }catch(e){}
+    syncThemeLabel();
+  });
+
+  // Copy buttons
+  [].slice.call(document.querySelectorAll('pre')).forEach(function(pre){
+    var btn=document.createElement('button');
+    btn.className='copy-btn'; btn.type='button'; btn.textContent='Copier';
+    btn.addEventListener('click', function(){
+      var code=pre.querySelector('code');
+      var text=code? code.innerText : pre.innerText;
+      navigator.clipboard.writeText(text).then(function(){
+        btn.textContent='Copié !'; setTimeout(function(){btn.textContent='Copier';},1500);
+      }).catch(function(){ btn.textContent='Échec'; });
+    });
+    pre.appendChild(btn);
+  });
+
+  // Sidebar search / filter (chapters + sub-sections), with match highlighting.
+  var search=document.getElementById('navSearch');
+  var clearBtn=document.getElementById('navClear');
+  var navEl=document.querySelector('.nav');
+  var emptyEl=document.querySelector('.nav-empty');
+  var homeLink=document.querySelector('.nav-home');
+  var searchWrap=document.querySelector('.nav-search-wrap');
+  function orig(el){ return el.dataset.orig!==undefined?el.dataset.orig:el.textContent; }
+  function esc(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function hl(el,q){
+    if(el.dataset.orig===undefined) el.dataset.orig=el.textContent;
+    var t=el.dataset.orig;
+    if(!q){ el.textContent=t; return; }
+    var i=t.toLowerCase().indexOf(q);
+    if(i<0){ el.textContent=t; return; }
+    el.innerHTML=esc(t.slice(0,i))+'<mark>'+esc(t.slice(i,i+q.length))+'</mark>'+esc(t.slice(i+q.length));
+  }
+  function filter(){
+    var q=search.value.trim().toLowerCase();
+    var on=q.length>0;
+    navEl.classList.toggle('searching',on);
+    searchWrap.classList.toggle('has-value', search.value.length>0);
+    var visible=0;
+    groups.forEach(function(g){
+      var chap=g.querySelector('.nav-chapter');
+      var chapMatch=orig(chap).toLowerCase().indexOf(q)>=0;
+      var subs=[].slice.call(g.querySelectorAll('.nav-sub'));
+      var anySub=false;
+      subs.forEach(function(s){
+        var m=!on||chapMatch||orig(s).toLowerCase().indexOf(q)>=0;
+        s.style.display=m?'':'none';
+        hl(s,(on&&!chapMatch&&m)?q:'');
+        if(m&&on) anySub=true;
+      });
+      var show=!on||chapMatch||anySub;
+      g.style.display=show?'':'none';
+      hl(chap,(on&&chapMatch)?q:'');
+      if(show) visible++;
+    });
+    if(homeLink){
+      var hs=!on||'accueil'.indexOf(q)>=0;
+      homeLink.style.display=hs?'':'none';
+      if(hs&&on) visible++;
+    }
+    emptyEl.classList.toggle('show', on&&visible===0);
+  }
+  if(search){
+    search.addEventListener('input', filter);
+    search.addEventListener('keydown', function(e){ if(e.key==='Escape'){ search.value=''; filter(); } });
+    clearBtn.addEventListener('click', function(){ search.value=''; filter(); search.focus(); });
+  }
+
+  // Syntax highlighting (map tsx/jsx, then highlight)
+  if(window.hljs){
+    [].slice.call(document.querySelectorAll('code[class*="language-"]')).forEach(function(code){
+      code.className=code.className.replace('language-tsx','language-typescript').replace('language-jsx','language-javascript');
+    });
+    try{ window.hljs.highlightAll(); }catch(e){}
+  }
+
+  route();
+})();
+</script>
+</body>
+</html>
