@@ -847,6 +847,134 @@ corps de la réponse).</p>
 En CLI : <code>curl -I https://mon-app.example.com/&lt;chemin-preview&gt;</code> doit renvoyer <code>200</code>, <strong>sans</strong>
 <code>X-Frame-Options</code>, avec un <code>Set-Cookie</code> sur <code>mon-app.example.com</code>.</p>
 </blockquote>
+<h3 id="c3-4-2-2-variante-in-process-server-route-tanstack-start">4.2.2 Variante in-process (server route TanStack Start)</h3>
+<p>Si vous ne pouvez <strong>pas</strong> placer un reverse proxy devant l&#39;app (déploiement serverless,
+mono-conteneur…), vous pouvez faire le relais <strong>dans le serveur TanStack Start lui-même</strong>, via
+une <strong>server route</strong>. Dans cette version (<code>@tanstack/react-start</code> 1.168), une server route se
+déclare avec l&#39;option <strong><code>server.handlers</code></strong> sur une route fichier : le handler reçoit
+<code>{ request }</code> et <strong>doit renvoyer une <code>Response</code></strong>.</p>
+<p><strong>La fonction de relais partagée</strong> — on y retrouve les trois mêmes réglages que côté nginx,
+(a) cookies, (b) anti-framing, (c) streaming :</p>
+<pre><code class="language-ts">// src/server/sinequa-proxy.ts
+const UPSTREAM = &#39;https://su-sba.demo.sinequa.com&#39; // = API_URL de vite.config.ts
+
+// En-têtes hop-by-hop : ne jamais les retransmettre.
+const HOP = new Set([
+  &#39;connection&#39;, &#39;keep-alive&#39;, &#39;proxy-authenticate&#39;, &#39;proxy-authorization&#39;,
+  &#39;te&#39;, &#39;trailer&#39;, &#39;transfer-encoding&#39;, &#39;upgrade&#39;, &#39;host&#39;, &#39;content-length&#39;,
+])
+
+export async function proxyToSinequa(request: Request): Promise&lt;Response&gt; {
+  const incoming = new URL(request.url)
+  // On réutilise tel quel le chemin appelé par la lib (/api/v1/preview…), search comprise.
+  const target = new URL(incoming.pathname + incoming.search, UPSTREAM)
+
+  // (changeOrigin) Forward des en-têtes, Cookie de session inclus.
+  const headers = new Headers()
+  request.headers.forEach((v, k) =&gt; {
+    if (!HOP.has(k.toLowerCase())) headers.set(k, v)
+  })
+  headers.set(&#39;host&#39;, target.host)
+  headers.set(&#39;x-forwarded-proto&#39;, incoming.protocol.replace(&#39;:&#39;, &#39;&#39;))
+  headers.set(&#39;x-forwarded-host&#39;, incoming.host)
+
+  const upstream = await fetch(target, {
+    method: request.method,
+    headers,
+    body: request.method === &#39;GET&#39; || request.method === &#39;HEAD&#39;
+      ? undefined
+      : request.body,
+    redirect: &#39;manual&#39;,          // (c) préserve les 3xx du round-trip OAuth
+    // @ts-expect-error undici (Node) : requis pour streamer un body de requête
+    duplex: &#39;half&#39;,
+  })
+
+  const respHeaders = new Headers(upstream.headers)
+
+  // (b) Anti-framing : retirer ce qui bloquerait l&#39;&lt;iframe&gt; même same-origin.
+  respHeaders.delete(&#39;x-frame-options&#39;)
+  respHeaders.delete(&#39;content-security-policy&#39;)
+  respHeaders.set(&#39;content-security-policy&#39;, &quot;frame-ancestors &#39;self&#39;&quot;)
+
+  // (a) Cookies : ré-attribuer le Domain à l&#39;origine de l&#39;app, sinon rejeté.
+  respHeaders.delete(&#39;set-cookie&#39;)
+  const setCookies =
+    (upstream.headers as Headers &amp; { getSetCookie?: () =&gt; string[] })
+      .getSetCookie?.() ?? []
+  for (const c of setCookies) {
+    respHeaders.append(
+      &#39;set-cookie&#39;,
+      c.replace(/;\s*Domain=[^;]+/i, `; Domain=${incoming.hostname}`),
+    )
+  }
+
+  // (c) Streaming : on renvoie directement le ReadableStream upstream.
+  return new Response(upstream.body, {
+    status: upstream.status,
+    statusText: upstream.statusText,
+    headers: respHeaders,
+  })
+}
+</code></pre>
+<p><strong>Une route fichier <em>splat</em> par préfixe Sinequa</strong> (pas de <code>component</code> : route serveur-only) :</p>
+<pre><code class="language-ts">// src/routes/api.$.tsx
+import { createFileRoute } from &#39;@tanstack/react-router&#39;
+import { proxyToSinequa } from &#39;../server/sinequa-proxy&#39;
+
+export const Route = createFileRoute(&#39;/api/$&#39;)({
+  server: {
+    handlers: {
+      ANY: ({ request }) =&gt; proxyToSinequa(request), // ANY = toutes méthodes
+    },
+  },
+})
+</code></pre>
+<p>On duplique ce fichier pour les autres préfixes (corps identique, seul le chemin change) :</p>
+<pre><code>src/routes/api.$.tsx        -&gt; &#39;/api/$&#39;
+src/routes/xdownload.$.tsx  -&gt; &#39;/xdownload/$&#39;
+src/routes/r.$.tsx          -&gt; &#39;/r/$&#39;
+src/routes/rest.$.tsx       -&gt; &#39;/rest/$&#39;
+</code></pre>
+<blockquote>
+<p>💡 Le splat <code>$</code> capte tout le sous-chemin ; on relit <code>pathname + search</code> depuis
+<code>request.url</code> plutôt que <code>params</code>. Le dispatcher choisit <code>handlers[METHOD] ?? handlers[&#39;ANY&#39;]</code>.</p>
+</blockquote>
+<p><strong>Limites vs le reverse proxy</strong> — à connaître avant de choisir :</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Reverse proxy (§4.2)</th>
+<th>In-process (§4.2.2)</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/endpoints</code> <strong>WebSocket</strong></td>
+<td>✅ relayé</td>
+<td>❌ <code>fetch</code> ne proxifie pas le WS — garde un proxy devant, ou un proxy WS Node dédié</td>
+</tr>
+<tr>
+<td><code>/auth/redirect</code> (OAuth)</td>
+<td>✅</td>
+<td>⚠️ <code>redirect: &#39;manual&#39;</code> garde le 3xx, mais si le <code>Location</code> est <strong>absolu</strong> vers Sinequa il faut aussi réécrire son host</td>
+</tr>
+<tr>
+<td>Charge</td>
+<td>proxy dédié</td>
+<td>streaming + auth <strong>sur votre process Node</strong> (plus lourd)</td>
+</tr>
+<tr>
+<td>Déploiement</td>
+<td>un composant en plus</td>
+<td><strong>rien à ajouter</strong> — pratique en serverless / mono-déploiement</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>⚠️ La variante in-process couvre parfaitement <strong>la preview</strong> (<code>/api/...</code> → HTML same-origin
+lisible par <code>preview.tsx</code>) et les appels REST, mais <strong>pas le WebSocket <code>/endpoints</code></strong>. Pour
+une prod complète, la reco reste le <strong>reverse proxy</strong> (§4.2) ; l&#39;in-process est le bon choix
+quand vous ne pouvez pas en placer un devant.</p>
+</blockquote>
 <h2 id="c3-4-3-option-b-backendurl-direct-cors">4.3 Option B — <code>backendUrl</code> direct + CORS</h2>
 <p>Pointer directement vers le serveur Sinequa :</p>
 <pre><code class="language-ts">setGlobalConfig({ backendUrl: &#39;https://su-sba.demo.sinequa.com&#39; })
