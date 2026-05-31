@@ -89,19 +89,63 @@ const result = await withReauth(() => fetchQuery({ name, text, page }))
 > Comme votre `AuthProvider` écoute déjà cet évènement (voir le tutoriel principal), la garde
 > de route renverra automatiquement vers `/login`. Pas besoin de manipuler la navigation ici.
 
-## 3.5 Outils de date fournis par la lib
+## 3.5 Expiration du **mot de passe** (à ne pas confondre avec le token)
 
-Si vous stockez/recevez un horodatage d'expiration, `@sinequa/atomic` expose des helpers :
+`@sinequa/atomic` expose deux helpers de date qui comparent une **date ISO** au présent :
 
 ```ts
 isExpired(iso?)            // true si la date ISO est passée (ou maintenant)
 expiresSoon(iso?, days=7)  // true si la date tombe dans les N prochains jours
 ```
 
-Pratique pour, par exemple, afficher un bandeau « votre session expire bientôt » ou forcer un
-`getCsrfToken()` préventif.
+> ⚠️ Malgré le contexte de ce chapitre, **ces helpers ne concernent pas la session/le token**.
+> Leur usage ici est l'**expiration du mot de passe** de l'utilisateur, exposée sur le
+> `Principal` via `passwordExpirationDate` (une date ISO) :
 
-## 3.6 À retenir
+```ts
+import { isExpired, expiresSoon } from '@sinequa/atomic'
+
+isExpired(principal.passwordExpirationDate)        // mot de passe déjà expiré ?
+expiresSoon(principal.passwordExpirationDate, 7)   // expire dans ≤ 7 jours ?
+```
+
+Typiquement pour afficher un bandeau « votre mot de passe expire bientôt, pensez à le changer ».
+Ne leur passez **pas** l'horodatage du token CSRF (voir 3.6) : ce n'est pas une date ISO.
+
+## 3.6 Lire l'expiration du **token CSRF**
+
+L'échéance du token d'authentification n'est **pas** une date séparée : elle est **encodée dans
+le token lui-même**, après le caractère `|`. Le backend renvoie par exemple :
+
+```json
+{ "data": { "csrfToken": "y7ZO5nUKQI242QB0NlktXmEMshAbCLi7KAJlBQupL9g|1780829080" } }
+```
+
+La partie après le `|` (`1780829080`) est un **timestamp Unix en secondes**. La lib stocke le
+token **entier** (`setToken`/`getToken`) et **ne décode pas** cette échéance — à vous de la lire
+si besoin :
+
+```ts
+import { getToken } from '@sinequa/atomic'
+
+/** Date d'expiration du token CSRF, ou null si non décodable. */
+function tokenExpiry(token = getToken()): Date | null {
+  const unixSeconds = Number(token?.split('|')[1])
+  return Number.isFinite(unixSeconds) ? new Date(unixSeconds * 1000) : null
+}
+
+function tokenExpired(token = getToken()): boolean {
+  const exp = tokenExpiry(token)
+  return !!exp && exp.getTime() <= Date.now()
+}
+```
+
+> 💡 En pratique vous n'avez **pas** besoin de tester ça vous-même : la **session glissante**
+> (3.2) prolonge le token tant que l'utilisateur est actif, et le **chemin d'échec 401**
+> (3.3-3.4) couvre le cas où il est réellement périmé. Décoder l'échéance ne sert que pour de
+> l'affichage (compte à rebours, diagnostic) ou un `getCsrfToken()` préventif.
+
+## 3.7 À retenir
 
 > 💡 **Ne réimplémentez pas le rafraîchissement** : il est déjà géré via
 > `sinequa-jwt-refresh`. Concentrez-vous sur le **chemin d'échec** (401) : retry silencieux,
@@ -113,7 +157,7 @@ Pratique pour, par exemple, afficher un bandeau « votre session expire bientôt
 > ⚠️ **Le retry doit être borné** (une seule tentative) pour éviter les boucles si le serveur
 > répond systématiquement 401.
 
-## 3.7 Implémentation de référence
+## 3.8 Implémentation de référence
 
 Ce patron **est implémenté** dans `src/auth/with-reauth.ts` (fonction `withReauth`), et appliqué
 aux appels de données de la page `/search` : `fetchApp`, `fetchQuery` (recherche, `aggregate`,
