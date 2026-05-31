@@ -30,8 +30,14 @@ Il faut reproduire, côté reverse proxy (nginx, Traefik, Apache…), **les mêm
 le proxy de dev. Exemple nginx :
 
 ```nginx
+# Helper pour l'upgrade WebSocket (à placer dans le bloc http{})
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+
 server {
-  listen 443 ssl;
+  listen 443 ssl http2;
   server_name mon-app.example.com;
 
   # 1) Les appels Sinequa -> backend
@@ -40,10 +46,28 @@ server {
     proxy_set_header Host su-sba.demo.sinequa.com;   # équivalent de changeOrigin
     proxy_ssl_server_name on;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # WebSocket pour /endpoints :
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+
+    # (a) Cookies de session : ré-attribuer le Domain du Set-Cookie à l'origine
+    #     de l'app, sinon le navigateur jette le cookie et l'iframe charge en 401.
+    proxy_cookie_domain su-sba.demo.sinequa.com mon-app.example.com;
+    proxy_cookie_flags  ~ secure samesite=lax;
+
+    # (b) Iframe preview : retirer les en-têtes anti-framing du backend, qui
+    #     interdisent l'<iframe> MÊME en same-origin (voir 4.2.1).
+    proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
+    add_header Content-Security-Policy "frame-ancestors 'self'" always;
+
+    # (c) Streaming des gros documents cachés (pas de bufferisation).
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_read_timeout 300s;
+
+    # (d) WebSocket pour /endpoints
     proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
+    proxy_set_header Upgrade    $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
   }
 
   # 2) L'application (serveur TanStack Start ou fichiers statiques)
@@ -57,6 +81,39 @@ server {
 > (`/api`, `/xdownload`, `/endpoints`, `/r`, `/rest`, `/auth/redirect`, `/saml/redirect`).
 > Si vous en oubliez un (souvent `/auth/redirect`), le **retour OAuth** ou un téléchargement
 > échouera silencieusement.
+
+### 4.2.1 Trois réglages indispensables pour l'iframe de preview
+
+La preview de document (`documentCachedContentUrl` chargé dans une `<iframe>`) est servie via
+ces mêmes préfixes. En same-origin, `preview.tsx` peut lire `contentDocument` pour le
+surlignage et la navigation — mais **trois réglages du reverse proxy** conditionnent que ça
+fonctionne en prod. Le proxy Vite les gère implicitement ; un reverse proxy, non.
+
+- **(a) Cookies de session.** Le HTML de cache n'est servi qu'authentifié. Le `Set-Cookie`
+  du backend porte le domaine Sinequa : sans `proxy_cookie_domain`, le navigateur le rejette
+  (domaine non concordant) et l'iframe charge **non authentifiée → 401**. On réécrit donc le
+  `Domain` vers l'origine de l'app. En same-origin, `SameSite=Lax` suffit.
+
+- **(b) En-têtes anti-framing.** Le serveur Sinequa peut renvoyer `X-Frame-Options` ou un
+  `Content-Security-Policy: frame-ancestors` qui **interdit le framing, même en same-origin**.
+  Le navigateur refuse alors d'afficher l'iframe (page blanche, erreur console) — ni preview
+  ni surlignage. On masque ces en-têtes (`proxy_hide_header`) et on ré-impose une politique
+  maîtrisée `frame-ancestors 'self'`.
+
+- **(c) Streaming.** Les documents cachés peuvent être volumineux. `proxy_buffering off`
+  (+ `proxy_read_timeout` généreux) évite les timeouts et donne un rendu progressif au lieu
+  d'attendre le corps complet.
+
+> ⚠️ **URLs relatives dans le HTML de cache.** Le document peut référencer ses ressources
+> (images, CSS) en relatif. En same-origin elles repartent sur votre origine sous un préfixe :
+> il doit être proxifié. Si des ressources de la preview tombent en 404, ajoutez le préfixe
+> manquant à la `location`, ou injectez une `<base href>` (ce qui implique de réécrire le
+> corps de la réponse).
+
+> ✅ **Vérification.** Ouvrez une preview : la console ne doit **pas** afficher
+> « Aperçu cross-origin », `frameAccessible` reste `true` et les puces de catégories naviguent.
+> En CLI : `curl -I https://mon-app.example.com/<chemin-preview>` doit renvoyer `200`, **sans**
+> `X-Frame-Options`, avec un `Set-Cookie` sur `mon-app.example.com`.
 
 ## 4.3 Option B — `backendUrl` direct + CORS
 

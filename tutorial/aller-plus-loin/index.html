@@ -760,8 +760,14 @@ transparent ; en <strong>cross-origin</strong>, cela impose une configuration CO
 (défaut) : aucun souci de CORS, le cookie est same-site.</p>
 <p>Il faut reproduire, côté reverse proxy (nginx, Traefik, Apache…), <strong>les mêmes préfixes</strong> que
 le proxy de dev. Exemple nginx :</p>
-<pre><code class="language-nginx">server {
-  listen 443 ssl;
+<pre><code class="language-nginx"># Helper pour l&#39;upgrade WebSocket (à placer dans le bloc http{})
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  &#39;&#39;      close;
+}
+
+server {
+  listen 443 ssl http2;
   server_name mon-app.example.com;
 
   # 1) Les appels Sinequa -&gt; backend
@@ -770,10 +776,28 @@ le proxy de dev. Exemple nginx :</p>
     proxy_set_header Host su-sba.demo.sinequa.com;   # équivalent de changeOrigin
     proxy_ssl_server_name on;
     proxy_set_header X-Forwarded-Proto $scheme;
-    # WebSocket pour /endpoints :
+    proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+
+    # (a) Cookies de session : ré-attribuer le Domain du Set-Cookie à l&#39;origine
+    #     de l&#39;app, sinon le navigateur jette le cookie et l&#39;iframe charge en 401.
+    proxy_cookie_domain su-sba.demo.sinequa.com mon-app.example.com;
+    proxy_cookie_flags  ~ secure samesite=lax;
+
+    # (b) Iframe preview : retirer les en-têtes anti-framing du backend, qui
+    #     interdisent l&#39;&lt;iframe&gt; MÊME en same-origin (voir 4.2.1).
+    proxy_hide_header X-Frame-Options;
+    proxy_hide_header Content-Security-Policy;
+    add_header Content-Security-Policy &quot;frame-ancestors &#39;self&#39;&quot; always;
+
+    # (c) Streaming des gros documents cachés (pas de bufferisation).
+    proxy_buffering off;
+    proxy_request_buffering off;
+    proxy_read_timeout 300s;
+
+    # (d) WebSocket pour /endpoints
     proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection &quot;upgrade&quot;;
+    proxy_set_header Upgrade    $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
   }
 
   # 2) L&#39;application (serveur TanStack Start ou fichiers statiques)
@@ -787,6 +811,41 @@ le proxy de dev. Exemple nginx :</p>
 (<code>/api</code>, <code>/xdownload</code>, <code>/endpoints</code>, <code>/r</code>, <code>/rest</code>, <code>/auth/redirect</code>, <code>/saml/redirect</code>).
 Si vous en oubliez un (souvent <code>/auth/redirect</code>), le <strong>retour OAuth</strong> ou un téléchargement
 échouera silencieusement.</p>
+</blockquote>
+<h3 id="c3-4-2-1-trois-reglages-indispensables-pour-l-39-iframe-de-preview">4.2.1 Trois réglages indispensables pour l&#39;iframe de preview</h3>
+<p>La preview de document (<code>documentCachedContentUrl</code> chargé dans une <code>&lt;iframe&gt;</code>) est servie via
+ces mêmes préfixes. En same-origin, <code>preview.tsx</code> peut lire <code>contentDocument</code> pour le
+surlignage et la navigation — mais <strong>trois réglages du reverse proxy</strong> conditionnent que ça
+fonctionne en prod. Le proxy Vite les gère implicitement ; un reverse proxy, non.</p>
+<ul>
+<li><p><strong>(a) Cookies de session.</strong> Le HTML de cache n&#39;est servi qu&#39;authentifié. Le <code>Set-Cookie</code>
+du backend porte le domaine Sinequa : sans <code>proxy_cookie_domain</code>, le navigateur le rejette
+(domaine non concordant) et l&#39;iframe charge <strong>non authentifiée → 401</strong>. On réécrit donc le
+<code>Domain</code> vers l&#39;origine de l&#39;app. En same-origin, <code>SameSite=Lax</code> suffit.</p>
+</li>
+<li><p><strong>(b) En-têtes anti-framing.</strong> Le serveur Sinequa peut renvoyer <code>X-Frame-Options</code> ou un
+<code>Content-Security-Policy: frame-ancestors</code> qui <strong>interdit le framing, même en same-origin</strong>.
+Le navigateur refuse alors d&#39;afficher l&#39;iframe (page blanche, erreur console) — ni preview
+ni surlignage. On masque ces en-têtes (<code>proxy_hide_header</code>) et on ré-impose une politique
+maîtrisée <code>frame-ancestors &#39;self&#39;</code>.</p>
+</li>
+<li><p><strong>(c) Streaming.</strong> Les documents cachés peuvent être volumineux. <code>proxy_buffering off</code>
+(+ <code>proxy_read_timeout</code> généreux) évite les timeouts et donne un rendu progressif au lieu
+d&#39;attendre le corps complet.</p>
+</li>
+</ul>
+<blockquote>
+<p>⚠️ <strong>URLs relatives dans le HTML de cache.</strong> Le document peut référencer ses ressources
+(images, CSS) en relatif. En same-origin elles repartent sur votre origine sous un préfixe :
+il doit être proxifié. Si des ressources de la preview tombent en 404, ajoutez le préfixe
+manquant à la <code>location</code>, ou injectez une <code>&lt;base href&gt;</code> (ce qui implique de réécrire le
+corps de la réponse).</p>
+</blockquote>
+<blockquote>
+<p>✅ <strong>Vérification.</strong> Ouvrez une preview : la console ne doit <strong>pas</strong> afficher
+« Aperçu cross-origin », <code>frameAccessible</code> reste <code>true</code> et les puces de catégories naviguent.
+En CLI : <code>curl -I https://mon-app.example.com/&lt;chemin-preview&gt;</code> doit renvoyer <code>200</code>, <strong>sans</strong>
+<code>X-Frame-Options</code>, avec un <code>Set-Cookie</code> sur <code>mon-app.example.com</code>.</p>
 </blockquote>
 <h2 id="c3-4-3-option-b-backendurl-direct-cors">4.3 Option B — <code>backendUrl</code> direct + CORS</h2>
 <p>Pointer directement vers le serveur Sinequa :</p>
