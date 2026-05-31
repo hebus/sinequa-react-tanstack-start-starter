@@ -1,0 +1,65 @@
+name: Deploy tutorial to GitHub Pages
+
+# Régénère le tutoriel (npm run tutorial) puis le publie sur GitHub Pages.
+# Déclenché à chaque push sur main touchant tutorial/ (ou ce workflow), et
+# manuellement via "Run workflow".
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tutorial/**'
+      - '.github/workflows/deploy-tutorial.yml'
+  workflow_dispatch:
+
+# Permissions minimales requises par actions/deploy-pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Une seule publication à la fois ; on annule les déploiements en attente.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # --ignore-scripts : on n'a besoin que de `marked` pour générer le HTML ;
+      # on évite ainsi le postinstall de Playwright (téléchargement de navigateurs).
+      - name: Install deps
+        run: npm ci --ignore-scripts
+
+      # Régénère tutorial/index.html et tutorial/aller-plus-loin/index.html
+      # à partir des fichiers Markdown — la source de vérité reste le .md.
+      - name: Build tutorial
+        run: npm run tutorial
+
+      # deploy-pages sert l'artefact tel quel (pas de Jekyll), mais .nojekyll
+      # garantit que d'éventuels fichiers commençant par "_" seraient préservés.
+      - name: Disable Jekyll
+        run: touch tutorial/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: tutorial
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
