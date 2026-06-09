@@ -10,6 +10,7 @@ import {
 } from 'react'
 import {
   appInitializerFn,
+  AuthMode,
   emitAuthenticatedEvent,
   fetchPrincipal,
   getCsrfToken,
@@ -138,14 +139,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // No credentials => library attempts SSO, then redirects to OAuth/SAML if configured.
   // The provider can be overridden (e.g. "identity" -> "identity_dev" when going through
-  // the dev proxy) before triggering the redirect-based flow.
+  // the dev proxy) before triggering the redirect-based flow. We set authMode explicitly
+  // (the 2.0 source of truth) so the redirect fires even when the backend pre-login
+  // advertised no provider and the user typed one in manually.
   const loginWithSSO = useCallback(
     (provider?: string, kind: 'oauth' | 'saml' = 'oauth') => {
       if (provider) {
         setGlobalConfig(
           kind === 'saml'
-            ? { autoSAMLProvider: provider, useSAML: true }
-            : { autoOAuthProvider: provider },
+            ? { autoSAMLProvider: provider, authMode: AuthMode.saml(provider) }
+            : { autoOAuthProvider: provider, authMode: AuthMode.oauth(provider) },
         )
       }
       return login()
